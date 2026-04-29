@@ -225,14 +225,13 @@ body{min-height:100vh;background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460)
 
 <script>
 // ── CONFIG ───────────────────────────────────────────────
-const MASTER_KEY   = "1921131514";
-const SESSION_KEY  = "suman_session";
-const LOGGED_IN_KEY = "suman_logged_in"; // ← নতুন: explicit login flag
-const TIMEOUT      = 10 * 60 * 1000;    // ← 10 মিনিট
-const TG_TOKEN     = "8703347824:AAHT2yKhqV5fp2j70H3bl9gQORqd1p1wOJ4";
-const TG_CHAT      = "-1003981955339";
-const TG           = `https://api.telegram.org/bot${TG_TOKEN}`;
-const DATA_TAG     = "SC_DATA_V3:";
+const MASTER_KEY  = "1921131514";
+const SESSION_KEY = "suman_session";
+const TIMEOUT     = 30 * 60 * 1000;
+const TG_TOKEN    = "8508841798:AAGlVhkBZLpH4jI7Mq5slIb-9FRkAkqJeVg";
+const TG_CHAT     = "-1003977401726";
+const TG          = `https://api.telegram.org/bot${TG_TOKEN}`;
+const DATA_TAG    = "SC_DATA_V3:";
 
 // ── STATE ────────────────────────────────────────────────
 let PASS        = localStorage.getItem("suman_pw") || "Suman400@";
@@ -248,77 +247,43 @@ let inactTimer  = null;
 
 // ── BOOT ─────────────────────────────────────────────────
 window.addEventListener("load", () => {
-  // ✅ FIX: শুধু তখনই auto-login হবে যদি:
-  //   1. explicit login flag থাকে (logout করা হয়নি)
-  //   2. session timeout হয়নি
-  const loggedIn  = sessionStorage.getItem(LOGGED_IN_KEY);
-  const lastActive = parseInt(sessionStorage.getItem(SESSION_KEY) || "0");
-  if (loggedIn === "1" && Date.now() - lastActive < TIMEOUT) {
-    showApp();
-  }
-  // অন্যথায় login page দেখাবে — কোনো auto-login নয়
+  const s = sessionStorage.getItem(SESSION_KEY);
+  if (s && Date.now() - parseInt(s) < TIMEOUT) showApp();
 });
-
 window.addEventListener("popstate", () => {
   if (activeTab === "files" && path.length > 0) { path.pop(); render(); }
 });
 
 // ── SESSION ──────────────────────────────────────────────
-function saveSession() {
-  sessionStorage.setItem(SESSION_KEY, Date.now());
-}
-
+function saveSession() { sessionStorage.setItem(SESSION_KEY, Date.now()); }
 function resetTimer() {
   clearTimeout(inactTimer);
-  inactTimer = setTimeout(() => {
-    toast("১০ মিনিট inactive — logout হয়ে গেছে", "err");
-    setTimeout(logout, 1500);
-  }, TIMEOUT);
+  inactTimer = setTimeout(() => { toast("৩০ মিনিট inactive — logout", "err"); setTimeout(logout, 1500); }, TIMEOUT);
   saveSession();
 }
-
 function startActivity() {
-  ["click","keydown","mousemove","touchstart","scroll"].forEach(e =>
-    document.addEventListener(e, resetTimer, { passive: true })
-  );
+  ["click","keydown","mousemove","touchstart","scroll"].forEach(e => document.addEventListener(e, resetTimer, { passive: true }));
 }
-
 function showApp() {
   document.getElementById("loginPage").classList.add("hidden");
   document.getElementById("appPage").classList.remove("hidden");
   loadData(); resetTimer(); startActivity();
 }
-
 function logout() {
-  // ✅ FIX: logout এ sessionStorage সম্পূর্ণ clear — আর auto-login হবে না
-  sessionStorage.removeItem(LOGGED_IN_KEY);
-  sessionStorage.removeItem(SESSION_KEY);
-  clearTimeout(inactTimer);
-
+  sessionStorage.removeItem(SESSION_KEY); clearTimeout(inactTimer);
   document.getElementById("loginPage").classList.remove("hidden");
   document.getElementById("appPage").classList.add("hidden");
   document.getElementById("pwInput").value = "";
   document.getElementById("errMsg").style.display = "none";
-  document.getElementById("pwInput").classList.remove("err");
 }
 
 // ── LOGIN ─────────────────────────────────────────────────
 document.getElementById("loginBtn").onclick = () => {
   const v = document.getElementById("pwInput").value;
-  if (v === PASS) {
-    // ✅ FIX: login সফল হলে explicit flag সেট করো
-    sessionStorage.setItem(LOGGED_IN_KEY, "1");
-    saveSession();
-    showApp();
-  } else {
-    document.getElementById("pwInput").classList.add("err");
-    document.getElementById("errMsg").style.display = "block";
-    document.getElementById("pwInput").value = "";
-  }
+  if (v === PASS) { saveSession(); showApp(); }
+  else { document.getElementById("pwInput").classList.add("err"); document.getElementById("errMsg").style.display = "block"; document.getElementById("pwInput").value = ""; }
 };
-document.getElementById("pwInput").addEventListener("keydown", e => {
-  if (e.key === "Enter") document.getElementById("loginBtn").click();
-});
+document.getElementById("pwInput").addEventListener("keydown", e => { if (e.key === "Enter") document.getElementById("loginBtn").click(); });
 document.getElementById("logoutBtn").onclick = logout;
 
 // ── PASSWORD CHANGE ───────────────────────────────────────
@@ -367,16 +332,10 @@ document.querySelectorAll(".tab").forEach(t => {
 
 // ── SORT & FILTER ─────────────────────────────────────────
 document.querySelectorAll("[data-sort]").forEach(b => {
-  b.onclick = () => {
-    document.querySelectorAll("[data-sort]").forEach(x => x.classList.remove("active"));
-    b.classList.add("active"); sort = b.dataset.sort; render();
-  };
+  b.onclick = () => { document.querySelectorAll("[data-sort]").forEach(x => x.classList.remove("active")); b.classList.add("active"); sort = b.dataset.sort; render(); };
 });
 document.querySelectorAll("[data-filter]").forEach(b => {
-  b.onclick = () => {
-    document.querySelectorAll("[data-filter]").forEach(x => x.classList.remove("active"));
-    b.classList.add("active"); filter = b.dataset.filter; render();
-  };
+  b.onclick = () => { document.querySelectorAll("[data-filter]").forEach(x => x.classList.remove("active")); b.classList.add("active"); filter = b.dataset.filter; render(); };
 });
 document.getElementById("searchBox").addEventListener("input", render);
 document.getElementById("backBtn").onclick = () => { if (path.length > 0) { path.pop(); render(); } };
@@ -390,6 +349,7 @@ async function tg(method, body) {
   return r.json();
 }
 
+// File upload — যেকোনো ধরনের file
 async function tgUpload(file) {
   const fd = new FormData();
   fd.append("chat_id", TG_CHAT);
@@ -408,6 +368,7 @@ async function tgUpload(file) {
   return obj.file_id;
 }
 
+// file_id → download URL
 async function tgUrl(fileId) {
   const d = await tg("getFile", { file_id: fileId });
   if (d.ok) return `https://api.telegram.org/file/bot${TG_TOKEN}/${d.result.file_path}`;
@@ -434,6 +395,7 @@ async function saveData() {
 }
 
 async function loadData() {
+  // cache আগে দেখাও
   try {
     const c = JSON.parse(localStorage.getItem("sc_cache") || "{}");
     files = c.files || []; recycle = c.recycle || [];
@@ -441,6 +403,7 @@ async function loadData() {
     render(); renderStats(); updateBinCount();
   } catch {}
 
+  // Telegram থেকে sync
   try {
     const r = await fetch(`${TG}/getUpdates?limit=100&offset=-100`);
     const d = await r.json();
@@ -588,6 +551,7 @@ function render() {
   const back = document.getElementById("backBtn");
   path.length > 0 ? back.classList.remove("hidden") : back.classList.add("hidden");
 
+  // breadcrumb
   const bc = document.getElementById("breadcrumb");
   bc.innerHTML = `<span class="crumb" data-p="">🏠 Home</span>`;
   path.forEach((p, i) => {
@@ -608,6 +572,7 @@ function render() {
     return true;
   };
 
+  // search mode
   if (q) {
     let res = files.filter(f => !f.placeholder && (f.name.toLowerCase().includes(q) || (f.path || "").toLowerCase().includes(q)) && matchFilter(f));
     res = sorted(res);
@@ -616,6 +581,7 @@ function render() {
     bindEvents(); return;
   }
 
+  // folders at current level
   const subs = new Set();
   files.forEach(f => {
     const fp = f.path || "";
