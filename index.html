@@ -4,149 +4,139 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Suman's Cloud ☁️</title>
-<meta name="theme-color" content="#1a1a2e"/>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
 body{min-height:100vh;background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460);color:#fff;overflow-x:hidden}
 .hidden{display:none!important}
 #loginPage{min-height:100vh;display:flex;align-items:center;justify-content:center}
 .loginBox{background:rgba(255,255,255,0.07);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.15);border-radius:24px;padding:40px 36px;width:320px;text-align:center}
-.ico{font-size:52px;margin-bottom:8px}
-.loginBox h2{font-size:21px;font-weight:700;margin-bottom:4px}
-.loginBox p{color:rgba(255,255,255,0.5);font-size:13px;margin-bottom:24px}
-.ipt{width:100%;padding:11px 16px;border-radius:12px;border:1.5px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:#fff;font-size:15px;outline:none;margin-bottom:8px}
-.ipt.err{border-color:#ff6b6b}
-.errMsg{color:#ff6b6b;font-size:13px;margin-bottom:8px;display:none}
-.btn{width:100%;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-top:6px}
-#appPage{max-width:780px;margin:0 auto;padding:16px}
-.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.header h1{font-size:20px;font-weight:800}
-.storageBox{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:14px 18px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
-.tgBadge{background:rgba(32,168,234,0.15);border:1px solid rgba(32,168,234,0.3);color:#29b6f6;border-radius:10px;padding:6px 12px;font-size:12px;font-weight:700}
-.uploadArea{border:2px dashed rgba(255,255,255,0.2);border-radius:18px;padding:20px 16px;text-align:center;background:rgba(255,255,255,0.04);margin-bottom:14px}
-.upBtns{display:flex;gap:8px;justify-content:center;margin-top:10px}
-.upBtn{padding:8px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.1);color:#fff;cursor:pointer;font-size:13px}
-.progressWrap{margin-top:12px;display:none}
-.progressBar{height:6px;background:rgba(255,255,255,0.1);border-radius:10px;overflow:hidden}
-.progressFill{height:100%;background:linear-gradient(90deg,#667eea,#764ba2);width:0%;transition:width .3s}
-.searchBox{width:100%;padding:10px 16px;border-radius:12px;border:1.5px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.07);color:#fff;font-size:14px;margin-bottom:10px;outline:none}
-.fileCard{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px;margin-bottom:8px}
-.fileIco{font-size:26px}
+.loginBox h2{font-size:22px;margin-bottom:20px}
+.ipt{width:100%;padding:12px;border-radius:12px;border:1.5px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:#fff;outline:none;margin-bottom:10px}
+.btn{width:100%;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;font-weight:700;cursor:pointer}
+#appPage{max-width:800px;margin:0 auto;padding:20px}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.storageBox{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:15px;padding:15px;margin-bottom:20px;display:flex;justify-content:space-between}
+.uploadArea{border:2px dashed rgba(255,255,255,0.2);border-radius:20px;padding:30px;text-align:center;background:rgba(255,255,255,0.03);margin-bottom:20px}
+.progressWrap{margin-top:15px;display:none}
+.progressBar{height:8px;background:rgba(255,255,255,0.1);border-radius:10px;overflow:hidden}
+.progressFill{height:100%;background:#667eea;width:0%;transition:0.3s}
+.fileCard{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:12px;display:flex;align-items:center;gap:15px;margin-bottom:10px}
 .fileInfo{flex:1;min-width:0}
-.fileName{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.fileMeta{color:rgba(255,255,255,0.35);font-size:11px}
-.iconBtn{padding:6px 9px;border-radius:8px;cursor:pointer;font-size:13px;border:1px solid rgba(255,255,255,0.2);background:transparent;color:#fff}
-.toast{position:fixed;top:20px;right:20px;padding:12px 20px;border-radius:12px;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,0.4);animation:fadeIn .3s}
-@keyframes fadeIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+.fileName{font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fileMeta{font-size:11px;color:rgba(255,255,255,0.4)}
+.dlBtn{padding:8px 12px;background:#51cf66;border:none;border-radius:8px;color:#fff;cursor:pointer}
+.toast{position:fixed;top:20px;right:20px;padding:12px 20px;border-radius:10px;z-index:9999;color:#fff}
 </style>
 </head>
 <body>
 
 <div id="loginPage">
   <div class="loginBox">
-    <div class="ico">☁️</div>
-    <h2>Suman's Cloud</h2>
-    <p>Password diye login korun</p>
-    <input type="password" class="ipt" id="pwInput" placeholder="Password..."/>
-    <div class="errMsg" id="errMsg">❌ Password bhul!</div>
-    <button class="btn" id="loginBtn">Login →</button>
+    <h2>☁️ Suman's Cloud</h2>
+    <input type="password" class="ipt" id="pwInput" placeholder="Password দিন..."/>
+    <button class="btn" id="loginBtn">প্রবেশ করুন</button>
   </div>
 </div>
 
 <div id="appPage" class="hidden">
   <div class="header">
-    <div><h1>☁️ Suman's Cloud</h1><p id="stats">Loading...</p></div>
-    <button class="upBtn" id="logoutBtn">Logout</button>
+    <h1>Suman's Cloud</h1>
+    <button class="btn" style="width:auto; padding:5px 15px;" onclick="location.reload()">Logout</button>
   </div>
 
   <div class="storageBox">
-    <div class="storageTxt">Used: <b id="usedSize">0 B</b></div>
-    <div class="tgBadge">✈️ Telegram Unlimited</div>
+    <div>ব্যবহৃত স্টোরেজ: <b id="usedSize">0 MB</b></div>
+    <div style="color:#29b6f6">✈️ Telegram Unlimited</div>
   </div>
 
-  <div class="uploadArea" id="uploadArea">
+  <div class="uploadArea">
     <input type="file" id="fileInput" multiple hidden/>
-    <div style="font-size:32px;margin-bottom:6px">📤</div>
-    <div style="font-size:14px;font-weight:700">File ekhane chere din ba button chapun</div>
-    <div class="upBtns">
-      <button class="upBtn" onclick="document.getElementById('fileInput').click()">Upload Files</button>
-    </div>
+    <p id="statusTxt">ফাইল আপলোড করতে বাটন চাপুন</p>
+    <button class="btn" style="width:auto; margin-top:10px;" onclick="document.getElementById('fileInput').click()">Upload Files</button>
+    
     <div class="progressWrap" id="progressWrap">
       <div class="progressBar"><div class="progressFill" id="progressFill"></div></div>
-      <div id="progressTxt" style="font-size:11px;margin-top:5px">0%</div>
+      <p id="progressTxt" style="font-size:12px; margin-top:5px;">0%</p>
     </div>
   </div>
 
-  <input class="searchBox" id="searchBox" placeholder="🔍 Search files..."/>
   <div id="mainList"></div>
 </div>
 
 <script>
 const TG_TOKEN = "8508841798:AAGlVhkBZLpH4jI7Mq5slIb-9FRkAkqJeVg";
 const TG_CHAT = "-1003977401726";
-const DATA_TAG = "SC_DB_V4:";
+const DATA_TAG = "SC_DB_V5:";
 const TG = `https://api.telegram.org/bot${TG_TOKEN}`;
-let PASS = localStorage.getItem("suman_pw") || "Suman400@";
+const PASS = "Suman400@";
 let files = [];
-let dataMsgId = null;
 
-// --- Login Logic ---
+// Login Logic
 document.getElementById("loginBtn").onclick = () => {
   if(document.getElementById("pwInput").value === PASS) {
     document.getElementById("loginPage").classList.add("hidden");
     document.getElementById("appPage").classList.remove("hidden");
     loadData();
   } else {
-    document.getElementById("errMsg").style.display = "block";
+    alert("ভুল পাসওয়ার্ড!");
   }
 };
 
-function toast(m, type="ok") {
+function toast(m, color="#ff6b6b") {
   const t = document.createElement("div");
-  t.className = `toast ${type}`;
-  t.style.background = type === "ok" ? "#51cf66" : "#ff6b6b";
+  t.className = "toast";
+  t.style.background = color;
   t.textContent = m;
   document.body.appendChild(t);
   setTimeout(() => t.remove(), 3000);
 }
 
-// --- Telegram Data Sync (For all devices) ---
+// Data Sync
 async function loadData() {
+  const status = document.getElementById("statusTxt");
+  status.textContent = "ডেটা চেক করা হচ্ছে...";
   try {
     const r = await fetch(`${TG}/getUpdates?limit=100&offset=-100`);
     const d = await r.json();
-    if(d.ok) {
+    
+    let found = false;
+    if(d.ok && d.result.length > 0) {
       const msgs = d.result.reverse();
       const dbMsg = msgs.find(m => {
-        const text = m.channel_post?.text || m.message?.text || "";
-        return text.startsWith(DATA_TAG);
+        const txt = m.channel_post?.text || m.message?.text || "";
+        return txt.startsWith(DATA_TAG);
       });
+      
       if(dbMsg) {
-        dataMsgId = dbMsg.channel_post?.message_id || dbMsg.message?.message_id;
         const raw = (dbMsg.channel_post?.text || dbMsg.message?.text).replace(DATA_TAG, "");
         files = JSON.parse(raw);
         render();
+        found = true;
       }
     }
-  } catch(e) { toast("Data load hoyni", "err"); }
+    status.textContent = found ? "ফাইল লোড হয়েছে" : "কোনো ফাইল পাওয়া যায়নি, আপলোড করুন।";
+  } catch(e) {
+    status.textContent = "নেটওয়ার্ক সমস্যা! আবার চেষ্টা করুন।";
+  }
 }
 
 async function saveData() {
   const txt = DATA_TAG + JSON.stringify(files);
-  const r = await fetch(`${TG}/sendMessage`, {
+  await fetch(`${TG}/sendMessage`, {
     method: "POST",
     headers: {"Content-Type": "application/json"},
     body: JSON.stringify({chat_id: TG_CHAT, text: txt})
   });
-  const d = await r.json();
-  if(d.ok) dataMsgId = d.result.message_id;
 }
 
-// --- Upload Logic ---
+// Upload
 document.getElementById("fileInput").onchange = async (e) => {
   const fls = Array.from(e.target.files);
+  if(fls.length === 0) return;
+
   const pw = document.getElementById("progressWrap");
   const pf = document.getElementById("progressFill");
+  const pt = document.getElementById("progressTxt");
   pw.style.display = "block";
 
   for(let i=0; i<fls.length; i++) {
@@ -155,6 +145,7 @@ document.getElementById("fileInput").onchange = async (e) => {
     fd.append("chat_id", TG_CHAT);
     fd.append("document", f);
     
+    pt.textContent = `আপলোড হচ্ছে: ${f.name}`;
     try {
       const res = await fetch(`${TG}/sendDocument`, { method: "POST", body: fd });
       const d = await res.json();
@@ -164,53 +155,46 @@ document.getElementById("fileInput").onchange = async (e) => {
           name: f.name,
           size: f.size,
           fileId: d.result.document.file_id,
-          date: new Date().toLocaleDateString()
+          date: new Date().toLocaleDateString('bn-BD')
         });
       }
-    } catch(err) { toast("Upload fail: " + f.name, "err"); }
+    } catch(err) { toast("ব্যর্থ: " + f.name); }
     pf.style.width = ((i+1)/fls.length * 100) + "%";
   }
+  
   await saveData();
   pw.style.display = "none";
   render();
-  toast("Uploaded!");
+  toast("সফলভাবে আপলোড হয়েছে!", "#51cf66");
 };
 
-// --- Render Logic ---
 function render() {
   const list = document.getElementById("mainList");
-  const q = document.getElementById("searchBox").value.toLowerCase();
-  const filtered = files.filter(f => f.name.toLowerCase().includes(q));
-  
   let used = 0;
-  list.innerHTML = filtered.map(f => {
+  list.innerHTML = files.map(f => {
     used += f.size;
     return `
       <div class="fileCard">
-        <div class="fileIco">📄</div>
+        <div style="font-size:24px">📄</div>
         <div class="fileInfo">
           <div class="fileName">${f.name}</div>
           <div class="fileMeta">${(f.size/1024/1024).toFixed(2)} MB · ${f.date}</div>
         </div>
-        <button class="iconBtn" onclick="downloadFile('${f.fileId}')">⬇️</button>
+        <button class="dlBtn" onclick="downloadFile('${f.fileId}')">Download</button>
       </div>
     `;
   }).join("");
   document.getElementById("usedSize").textContent = (used/1024/1024).toFixed(2) + " MB";
-  document.getElementById("stats").textContent = files.length + " files total";
 }
 
 async function downloadFile(id) {
+  toast("লিংক তৈরি হচ্ছে...", "#339af0");
   const r = await fetch(`${TG}/getFile?file_id=${id}`);
   const d = await r.json();
   if(d.ok) {
     window.open(`https://api.telegram.org/file/bot${TG_TOKEN}/${d.result.file_path}`, "_blank");
   }
 }
-
-document.getElementById("searchBox").oninput = render;
-document.getElementById("logoutBtn").onclick = () => location.reload();
-
 </script>
 </body>
 </html>
