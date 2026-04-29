@@ -48,13 +48,21 @@ body{min-height:100vh;background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460)
 .breadcrumb{display:flex;align-items:center;gap:5px;flex-wrap:wrap;flex:1}
 .crumb{color:#a5b4fc;cursor:pointer;font-size:13px;font-weight:600}
 .crumbSep{color:rgba(255,255,255,0.3);font-size:13px}
-.folderCard{background:rgba(255,200,50,0.08);border:1px solid rgba(255,200,50,0.2);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px;margin-bottom:8px;cursor:pointer;transition:all .2s}
+
+/* ── FOLDER CARD with drag-drop support ── */
+.folderCard{background:rgba(255,200,50,0.08);border:1px solid rgba(255,200,50,0.2);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px;margin-bottom:8px;cursor:pointer;transition:all .2s;position:relative}
 .folderCard:hover{background:rgba(255,200,50,0.15)}
+.folderCard.drop-target{background:rgba(102,126,234,0.3)!important;border-color:#667eea!important;transform:scale(1.02)}
 .folderIco{font-size:28px;flex-shrink:0}
 .folderInfo{flex:1;min-width:0}
 .folderName{font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .folderMeta{color:rgba(255,255,255,0.4);font-size:11px;margin-top:2px}
-.fileCard{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px;margin-bottom:8px}
+
+/* ── FILE CARD with drag support ── */
+.fileCard{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px;margin-bottom:8px;transition:all .2s}
+.fileCard.dragging{opacity:0.4;transform:scale(0.97)}
+.fileCard[draggable="true"]{cursor:grab}
+.fileCard[draggable="true"]:active{cursor:grabbing}
 .fileIco{font-size:26px;flex-shrink:0}
 .fileInfo{flex:1;min-width:0}
 .fileName{font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -70,6 +78,11 @@ body{min-height:100vh;background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460)
 .emptyBin{padding:7px 14px;border-radius:10px;border:1px solid rgba(255,107,107,0.3);background:rgba(255,107,107,0.1);color:#ff6b6b;cursor:pointer;font-size:13px;font-weight:600}
 .empty{text-align:center;color:rgba(255,255,255,0.25);padding:40px 0}
 .empty div{font-size:44px;margin-bottom:8px}
+
+/* Drop zone hint bar */
+.dropHint{background:rgba(102,126,234,0.15);border:2px dashed rgba(102,126,234,0.4);border-radius:12px;padding:10px;text-align:center;font-size:12px;color:rgba(102,126,234,0.8);margin-bottom:8px;display:none}
+.dropHint.show{display:block}
+
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px}
 .modalBox{background:#16213e;border:1px solid rgba(255,255,255,0.12);border-radius:20px;padding:26px;width:320px;max-width:95vw}
 .modalBox h3{font-size:16px;font-weight:700;margin-bottom:14px;text-align:center}
@@ -95,6 +108,7 @@ body{min-height:100vh;background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460)
 </head>
 <body>
 
+<!-- LOGIN -->
 <div id="loginPage">
   <div class="loginBox">
     <div class="ico">☁️</div>
@@ -107,6 +121,7 @@ body{min-height:100vh;background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460)
   </div>
 </div>
 
+<!-- APP -->
 <div id="appPage" class="hidden">
   <div class="header">
     <div><h1>☁️ Suman's Cloud</h1><p id="stats">লোড হচ্ছে...</p></div>
@@ -123,6 +138,7 @@ body{min-height:100vh;background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460)
     <button class="tab" data-tab="recycle">🗑️ Recycle Bin<span id="binCount"></span></button>
   </div>
 
+  <!-- FILES TAB -->
   <div id="filesTab">
     <div class="uploadArea" id="uploadArea">
       <input type="file" id="fileInput" multiple hidden/>
@@ -158,9 +174,14 @@ body{min-height:100vh;background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460)
       <button class="backBtn hidden" id="backBtn">← Back</button>
       <div class="breadcrumb" id="breadcrumb"></div>
     </div>
+
+    <!-- Drag hint shown while dragging a file -->
+    <div class="dropHint" id="dropHint">📁 Folder এর উপর ছেড়ে দাও — ফাইলটি সেই folder এ চলে যাবে</div>
+
     <div id="mainList"></div>
   </div>
 
+  <!-- RECYCLE TAB -->
   <div id="recycleTab" class="hidden">
     <div class="recycleBar">
       <span style="font-size:14px;font-weight:600">🗑️ Recycle Bin</span>
@@ -170,7 +191,7 @@ body{min-height:100vh;background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460)
   </div>
 </div>
 
-<!-- MODALS -->
+<!-- PASSWORD MODAL -->
 <div class="overlay hidden" id="changePwModal">
   <div class="modalBox">
     <h3>🔑 Password পরিবর্তন</h3>
@@ -187,6 +208,7 @@ body{min-height:100vh;background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460)
   </div>
 </div>
 
+<!-- NEW FOLDER MODAL -->
 <div class="overlay hidden" id="newFolderModal">
   <div class="modalBox">
     <h3>➕ নতুন Folder</h3>
@@ -198,6 +220,7 @@ body{min-height:100vh;background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460)
   </div>
 </div>
 
+<!-- RENAME MODAL -->
 <div class="overlay hidden" id="renameModal">
   <div class="modalBox">
     <h3>✏️ Rename</h3>
@@ -209,6 +232,7 @@ body{min-height:100vh;background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460)
   </div>
 </div>
 
+<!-- PREVIEW -->
 <div class="previewOverlay hidden" id="previewOverlay">
   <div class="previewBox">
     <button class="previewClose" id="previewClose">✕</button>
@@ -217,6 +241,7 @@ body{min-height:100vh;background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460)
 </div>
 
 <script>
+// ── CONFIG ───────────────────────────────────────────────
 const MASTER_KEY  = "1921131514";
 const SESSION_KEY = "suman_session";
 const TIMEOUT     = 30 * 60 * 1000;
@@ -225,18 +250,21 @@ const TG_CHAT     = "-1003977401726";
 const TG          = `https://api.telegram.org/bot${TG_TOKEN}`;
 const DATA_TAG    = "SC_DATA_V3:";
 
-let PASS       = localStorage.getItem("suman_pw") || "Suman400@";
-let files      = [];
-let recycle    = [];
-let path       = [];
-let sort       = "new";
-let filter     = "all";
-let activeTab  = "files";
-let renameTgt  = null;
-let dataMsgId  = localStorage.getItem("sc_msg_id") || null;
-let inactTimer = null;
+// ── STATE ────────────────────────────────────────────────
+let PASS        = localStorage.getItem("suman_pw") || "Suman400@";
+let files       = [];
+let recycle     = [];
+let path        = [];
+let sort        = "new";
+let filter      = "all";
+let activeTab   = "files";
+let renameTgt   = null;
+let dataMsgId   = localStorage.getItem("sc_msg_id") || null;
+let inactTimer  = null;
+let dragFileId  = null;   // currently dragged file id
+let dragFolderPath = null; // currently dragged folder path
 
-// ── BOOT ────────────────────────────────────────────────
+// ── BOOT ─────────────────────────────────────────────────
 window.addEventListener("load", () => {
   const s = sessionStorage.getItem(SESSION_KEY);
   if (s && Date.now() - parseInt(s) < TIMEOUT) showApp();
@@ -245,7 +273,7 @@ window.addEventListener("popstate", () => {
   if (activeTab === "files" && path.length > 0) { path.pop(); render(); }
 });
 
-// ── SESSION ─────────────────────────────────────────────
+// ── SESSION ──────────────────────────────────────────────
 function saveSession() { sessionStorage.setItem(SESSION_KEY, Date.now()); }
 function resetTimer() {
   clearTimeout(inactTimer);
@@ -268,7 +296,7 @@ function logout() {
   document.getElementById("errMsg").style.display = "none";
 }
 
-// ── LOGIN ────────────────────────────────────────────────
+// ── LOGIN ─────────────────────────────────────────────────
 document.getElementById("loginBtn").onclick = () => {
   const v = document.getElementById("pwInput").value;
   if (v === PASS) { saveSession(); showApp(); }
@@ -277,7 +305,7 @@ document.getElementById("loginBtn").onclick = () => {
 document.getElementById("pwInput").addEventListener("keydown", e => { if (e.key === "Enter") document.getElementById("loginBtn").click(); });
 document.getElementById("logoutBtn").onclick = logout;
 
-// ── PASSWORD CHANGE ──────────────────────────────────────
+// ── PASSWORD CHANGE ───────────────────────────────────────
 let masterOk = false;
 document.getElementById("changePwBtn").onclick = () => {
   masterOk = false;
@@ -310,7 +338,7 @@ document.getElementById("verifyMasterBtn").onclick = () => {
   }
 };
 
-// ── TABS ────────────────────────────────────────────────
+// ── TABS ──────────────────────────────────────────────────
 document.querySelectorAll(".tab").forEach(t => {
   t.onclick = () => {
     document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
@@ -320,6 +348,8 @@ document.querySelectorAll(".tab").forEach(t => {
     if (activeTab === "recycle") renderRecycle();
   };
 });
+
+// ── SORT & FILTER ─────────────────────────────────────────
 document.querySelectorAll("[data-sort]").forEach(b => {
   b.onclick = () => { document.querySelectorAll("[data-sort]").forEach(x => x.classList.remove("active")); b.classList.add("active"); sort = b.dataset.sort; render(); };
 });
@@ -329,7 +359,7 @@ document.querySelectorAll("[data-filter]").forEach(b => {
 document.getElementById("searchBox").addEventListener("input", render);
 document.getElementById("backBtn").onclick = () => { if (path.length > 0) { path.pop(); render(); } };
 
-// ── TELEGRAM ─────────────────────────────────────────────
+// ── TELEGRAM API ──────────────────────────────────────────
 async function tg(method, body) {
   const r = await fetch(`${TG}/${method}`, {
     method: "POST", headers: { "Content-Type": "application/json" },
@@ -343,10 +373,10 @@ async function tgUpload(file) {
   fd.append("chat_id", TG_CHAT);
   const ext = file.name.split(".").pop().toLowerCase();
   let method, field;
-  if (["jpg","jpeg","png","gif","webp"].includes(ext))    { method = "sendPhoto";    field = "photo"; }
-  else if (["mp4","mov","webm"].includes(ext))             { method = "sendVideo";    field = "video"; }
-  else if (["mp3","wav","ogg","aac","m4a"].includes(ext))  { method = "sendAudio";    field = "audio"; }
-  else                                                      { method = "sendDocument"; field = "document"; }
+  if (["jpg","jpeg","png","gif","webp"].includes(ext)) { method = "sendPhoto"; field = "photo"; }
+  else if (["mp4","mov","webm"].includes(ext))          { method = "sendVideo"; field = "video"; }
+  else if (["mp3","wav","ogg","aac","m4a"].includes(ext)){ method = "sendAudio"; field = "audio"; }
+  else                                                    { method = "sendDocument"; field = "document"; }
   fd.append(field, file, file.name);
   const r = await fetch(`${TG}/${method}`, { method: "POST", body: fd });
   const d = await r.json();
@@ -362,7 +392,7 @@ async function tgUrl(fileId) {
   return null;
 }
 
-// ── DATA SAVE / LOAD ─────────────────────────────────────
+// ── DATA SAVE / LOAD ──────────────────────────────────────
 function saveCache() {
   localStorage.setItem("sc_cache", JSON.stringify({ files, recycle, msgId: dataMsgId }));
 }
@@ -374,19 +404,14 @@ async function saveData() {
     if (dataMsgId) {
       const r = await tg("editMessageText", { chat_id: TG_CHAT, message_id: parseInt(dataMsgId), text: txt });
       if (!r.ok) throw new Error();
-    } else throw new Error();
+    } else throw new Error("no id");
   } catch {
     const r = await tg("sendMessage", { chat_id: TG_CHAT, text: txt });
-    if (r.ok) {
-      dataMsgId = String(r.result.message_id);
-      localStorage.setItem("sc_msg_id", dataMsgId);
-      saveCache();
-    }
+    if (r.ok) { dataMsgId = String(r.result.message_id); localStorage.setItem("sc_msg_id", dataMsgId); saveCache(); }
   }
 }
 
 async function loadData() {
-  // cache আগে দেখাও
   try {
     const c = JSON.parse(localStorage.getItem("sc_cache") || "{}");
     files = c.files || []; recycle = c.recycle || [];
@@ -394,27 +419,8 @@ async function loadData() {
     render(); renderStats(); updateBinCount();
   } catch {}
 
-  // Telegram থেকে getChat দিয়ে pinned message খোঁজো
-  // এটা যেকোনো device থেকে কাজ করে — sc_msg_id না থাকলেও
   try {
-    const chatInfo = await tg("getChat", { chat_id: TG_CHAT });
-    if (chatInfo.ok && chatInfo.result.pinned_message) {
-      const pinned = chatInfo.result.pinned_message;
-      const txt = pinned.text || "";
-      if (txt.startsWith(DATA_TAG)) {
-        dataMsgId = String(pinned.message_id);
-        localStorage.setItem("sc_msg_id", dataMsgId);
-        const rec = JSON.parse(txt.slice(DATA_TAG.length));
-        files = rec.files || []; recycle = rec.recycle || [];
-        saveCache(); render(); renderStats(); updateBinCount();
-        return;
-      }
-    }
-  } catch {}
-
-  // pinned না পেলে getUpdates থেকে খোঁজো
-  try {
-    const r = await fetch(`${TG}/getUpdates?limit=100`);
+    const r = await fetch(`${TG}/getUpdates?limit=100&offset=-100`);
     const d = await r.json();
     if (!d.ok) return;
     let found = null;
@@ -428,17 +434,7 @@ async function loadData() {
       files = rec.files || []; recycle = rec.recycle || [];
       saveCache(); render(); renderStats(); updateBinCount();
     }
-  } catch { toast("Sync সমস্যা", "info"); }
-}
-
-// প্রতিবার save এর পর data message pin করো
-async function saveDataAndPin() {
-  await saveData();
-  if (dataMsgId) {
-    try {
-      await tg("pinChatMessage", { chat_id: TG_CHAT, message_id: parseInt(dataMsgId), disable_notification: true });
-    } catch {}
-  }
+  } catch { toast("Sync সমস্যা — cache থেকে দেখাচ্ছে", "info"); }
 }
 
 function renderStats() {
@@ -451,7 +447,7 @@ function updateBinCount() {
   document.getElementById("binCount").textContent = recycle.length ? ` (${recycle.length})` : "";
 }
 
-// ── UPLOAD ───────────────────────────────────────────────
+// ── UPLOAD ────────────────────────────────────────────────
 document.getElementById("fileBtnTrigger").onclick = e => { e.stopPropagation(); document.getElementById("fileInput").click(); };
 document.getElementById("folderBtnTrigger").onclick = e => { e.stopPropagation(); document.getElementById("folderInput").click(); };
 document.getElementById("fileInput").addEventListener("change", e => {
@@ -462,7 +458,8 @@ document.getElementById("folderInput").addEventListener("change", e => {
   const cur = path.join("/");
   const col = Array.from(e.target.files).map(f => {
     const parts = f.webkitRelativePath.split("/"); parts.pop();
-    return { file: f, path: cur ? cur + "/" + parts.join("/") : parts.join("/") };
+    const rel = parts.join("/");
+    return { file: f, path: cur ? cur + "/" + rel : rel };
   });
   doUpload(col); e.target.value = "";
 });
@@ -470,6 +467,8 @@ document.getElementById("uploadArea").addEventListener("dragover", e => { e.prev
 document.getElementById("uploadArea").addEventListener("dragleave", e => e.currentTarget.classList.remove("drag"));
 document.getElementById("uploadArea").addEventListener("drop", async e => {
   e.preventDefault(); e.currentTarget.classList.remove("drag");
+  // ignore internal file-card drags
+  if (dragFileId || dragFolderPath) return;
   const col = [];
   if (e.dataTransfer.items) {
     for (const item of e.dataTransfer.items) { const en = item.webkitGetAsEntry(); if (en) await walkEntry(en, path.join("/"), col); }
@@ -494,21 +493,22 @@ async function doUpload(col) {
   pw.style.display = "block"; pf.style.width = "0%";
   let ok = 0;
   for (let i = 0; i < col.length; i++) {
-    pt.textContent = `${i + 1}/${col.length} — ${col[i].file.name}`;
+    const { file } = col[i];
+    pt.textContent = `${i + 1}/${col.length} — ${file.name}`;
     try {
-      const fileId = await tgUpload(col[i].file);
-      files.unshift({ id: "f_" + Date.now() + "_" + i, name: col[i].file.name, path: col[i].path, size: col[i].file.size, fileId, date: new Date().toLocaleDateString("bn-IN"), ts: Date.now() });
+      const fileId = await tgUpload(file);
+      files.unshift({ id: "f_" + Date.now() + "_" + i, name: file.name, path: col[i].path, size: file.size, fileId, date: new Date().toLocaleDateString("bn-IN"), ts: Date.now() });
       ok++;
-    } catch { toast("Failed: " + col[i].file.name, "err"); }
+    } catch { toast("Failed: " + file.name, "err"); }
     pf.style.width = ((i + 1) / col.length * 100) + "%";
   }
-  await saveDataAndPin();
+  await saveData();
   setTimeout(() => { pw.style.display = "none"; }, 1000);
   renderStats(); render();
   toast(ok + "টি file upload হয়েছে ✅");
 }
 
-// ── FOLDER ───────────────────────────────────────────────
+// ── FOLDER ────────────────────────────────────────────────
 document.getElementById("newFolderBtn").onclick = e => {
   e.stopPropagation();
   document.getElementById("newFolderInput").value = "";
@@ -524,12 +524,12 @@ async function createFolder() {
   if (!name) { toast("Folder এর নাম দিন", "err"); return; }
   const cur = path.join("/");
   files.push({ id: "dir_" + Date.now(), name: ".folder", path: cur ? cur + "/" + name : name, size: 0, date: new Date().toLocaleDateString("bn-IN"), ts: Date.now(), placeholder: true });
-  await saveDataAndPin();
+  await saveData();
   document.getElementById("newFolderModal").classList.add("hidden");
   render(); toast("Folder তৈরি হয়েছে ✅");
 }
 
-// ── RENAME ───────────────────────────────────────────────
+// ── RENAME ────────────────────────────────────────────────
 document.getElementById("cancelRenameBtn").onclick = () => document.getElementById("renameModal").classList.add("hidden");
 document.getElementById("confirmRenameBtn").onclick = doRename;
 document.getElementById("renameInput").addEventListener("keydown", e => { if (e.key === "Enter") doRename(); });
@@ -545,7 +545,8 @@ async function doRename() {
   const newName = document.getElementById("renameInput").value.trim();
   if (!newName || !renameTgt) { toast("নাম দিন", "err"); return; }
   if (renameTgt.type === "file") {
-    const f = files.find(x => x.id === renameTgt.id); if (f) f.name = newName;
+    const f = files.find(x => x.id === renameTgt.id);
+    if (f) f.name = newName;
   } else {
     const op = renameTgt.oldPath;
     const parts = op.split("/"); parts[parts.length - 1] = newName;
@@ -555,17 +556,99 @@ async function doRename() {
       else if ((f.path || "").startsWith(op + "/")) f.path = np + f.path.slice(op.length);
     });
   }
-  await saveDataAndPin();
+  await saveData();
   document.getElementById("renameModal").classList.add("hidden");
   render(); toast("Rename হয়েছে ✅");
 }
 
-// ── RENDER ───────────────────────────────────────────────
+// ── DRAG & DROP MOVE ──────────────────────────────────────
+// Called when a file-card drag starts
+function onFileDragStart(e, fileId) {
+  dragFileId = fileId;
+  dragFolderPath = null;
+  e.dataTransfer.effectAllowed = "move";
+  e.dataTransfer.setData("text/plain", fileId);
+  document.getElementById("dropHint").classList.add("show");
+  setTimeout(() => { const el = document.querySelector(`.fileCard[data-id="${fileId}"]`); if(el) el.classList.add("dragging"); }, 0);
+}
+
+// Called when a folder-card drag starts (move folder into another folder)
+function onFolderDragStart(e, folderPath) {
+  dragFolderPath = folderPath;
+  dragFileId = null;
+  e.dataTransfer.effectAllowed = "move";
+  e.dataTransfer.setData("text/plain", folderPath);
+  document.getElementById("dropHint").classList.add("show");
+}
+
+function onDragEnd() {
+  dragFileId = null;
+  dragFolderPath = null;
+  document.getElementById("dropHint").classList.remove("show");
+  document.querySelectorAll(".fileCard.dragging").forEach(el => el.classList.remove("dragging"));
+  document.querySelectorAll(".folderCard.drop-target").forEach(el => el.classList.remove("drop-target"));
+}
+
+// Folder card drag-over: highlight only if we're dragging a file/folder
+function onFolderDragOver(e, targetFolderPath) {
+  if (!dragFileId && !dragFolderPath) return;
+  // don't allow dropping a folder into itself or its own children
+  if (dragFolderPath && (dragFolderPath === targetFolderPath || targetFolderPath.startsWith(dragFolderPath + "/"))) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = "move";
+  document.querySelectorAll(".folderCard.drop-target").forEach(el => el.classList.remove("drop-target"));
+  const el = document.querySelector(`.folderCard[data-fp="${CSS.escape(targetFolderPath)}"]`);
+  if (el) el.classList.add("drop-target");
+}
+
+function onFolderDragLeave(e, targetFolderPath) {
+  const el = document.querySelector(`.folderCard[data-fp="${CSS.escape(targetFolderPath)}"]`);
+  if (el && !el.contains(e.relatedTarget)) el.classList.remove("drop-target");
+}
+
+async function onFolderDrop(e, targetFolderPath) {
+  e.preventDefault();
+  e.stopPropagation();
+  document.querySelectorAll(".folderCard.drop-target").forEach(el => el.classList.remove("drop-target"));
+  document.getElementById("dropHint").classList.remove("show");
+
+  if (dragFileId) {
+    // Move file into target folder
+    const f = files.find(x => x.id === dragFileId);
+    if (!f) { dragFileId = null; return; }
+    if (f.path === targetFolderPath) { toast("ফাইলটি এই folder এই আছে", "info"); dragFileId = null; return; }
+    f.path = targetFolderPath;
+    dragFileId = null;
+    await saveData();
+    render(); renderStats();
+    toast("ফাইলটি সরানো হয়েছে ✅");
+  } else if (dragFolderPath) {
+    // Move folder into target folder
+    if (dragFolderPath === targetFolderPath || targetFolderPath.startsWith(dragFolderPath + "/")) {
+      toast("এই folder এ সরানো যাবে না", "err"); dragFolderPath = null; return;
+    }
+    const folderName = dragFolderPath.split("/").pop();
+    const newPath = targetFolderPath + "/" + folderName;
+    // update all files inside this folder
+    files.forEach(f => {
+      if ((f.path || "") === dragFolderPath) f.path = newPath;
+      else if ((f.path || "").startsWith(dragFolderPath + "/")) f.path = newPath + f.path.slice(dragFolderPath.length);
+    });
+    dragFolderPath = null;
+    await saveData();
+    render(); renderStats();
+    toast("Folder সরানো হয়েছে ✅");
+  }
+}
+
+// ── RENDER ────────────────────────────────────────────────
 function render() {
   const q = document.getElementById("searchBox").value.toLowerCase().trim();
   const cur = path.join("/");
-  path.length > 0 ? document.getElementById("backBtn").classList.remove("hidden") : document.getElementById("backBtn").classList.add("hidden");
+  const back = document.getElementById("backBtn");
+  path.length > 0 ? back.classList.remove("hidden") : back.classList.add("hidden");
 
+  // breadcrumb
   const bc = document.getElementById("breadcrumb");
   bc.innerHTML = `<span class="crumb" data-p="">🏠 Home</span>`;
   path.forEach((p, i) => {
@@ -576,6 +659,7 @@ function render() {
   }));
 
   const list = document.getElementById("mainList");
+
   const matchFilter = f => {
     if (filter === "photo")  return /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(f.name);
     if (filter === "pdf")    return /\.pdf$/i.test(f.name);
@@ -585,6 +669,7 @@ function render() {
     return true;
   };
 
+  // search mode
   if (q) {
     let res = files.filter(f => !f.placeholder && (f.name.toLowerCase().includes(q) || (f.path || "").toLowerCase().includes(q)) && matchFilter(f));
     res = sorted(res);
@@ -593,6 +678,7 @@ function render() {
     bindEvents(); return;
   }
 
+  // folders at current level
   const subs = new Set();
   files.forEach(f => {
     const fp = f.path || "";
@@ -609,12 +695,15 @@ function render() {
   subs.forEach(name => {
     const fp = cur ? cur + "/" + name : name;
     const cnt = files.filter(f => !f.placeholder && ((f.path || "") === fp || (f.path || "").startsWith(fp + "/"))).length;
-    html += `<div class="folderCard" data-folder="${name}" data-fp="${fp}">
+    html += `<div class="folderCard"
+      data-folder="${name.replace(/"/g,'&quot;')}"
+      data-fp="${fp.replace(/"/g,'&quot;')}"
+      draggable="true">
       <div class="folderIco">📁</div>
       <div class="folderInfo"><div class="folderName">${name}</div><div class="folderMeta">${cnt}টি ফাইল</div></div>
       <div style="display:flex;gap:5px">
-        <button class="iconBtn renameIco fRename" data-name="${name}" data-fp="${fp}">✏️</button>
-        <button class="iconBtn delIco fDel" data-fp="${fp}">🗑️</button>
+        <button class="iconBtn renameIco fRename" data-name="${name.replace(/"/g,'&quot;')}" data-fp="${fp.replace(/"/g,'&quot;')}">✏️</button>
+        <button class="iconBtn delIco fDel" data-fp="${fp.replace(/"/g,'&quot;')}">🗑️</button>
       </div>
     </div>`;
   });
@@ -623,40 +712,74 @@ function render() {
   bindEvents();
 }
 
-function sorted(arr) { return [...arr].sort((a, b) => sort === "new" ? (b.ts||0)-(a.ts||0) : (a.ts||0)-(b.ts||0)); }
+function sorted(arr) {
+  return [...arr].sort((a, b) => sort === "new" ? (b.ts || 0) - (a.ts || 0) : (a.ts || 0) - (b.ts || 0));
+}
 
 function fileHTML(f, showPath) {
-  return `<div class="fileCard" data-id="${f.id}">
+  return `<div class="fileCard" data-id="${f.id}" draggable="true">
     <div class="fileIco">${icon(f.name)}</div>
     <div class="fileInfo">
       <div class="fileName">${f.name}</div>
-      <div class="fileMeta">${fmtSize(f.size||0)} · ${f.date}${showPath && f.path ? " · 📁 " + f.path : ""}</div>
+      <div class="fileMeta">${fmtSize(f.size || 0)} · ${f.date}${showPath && f.path ? " · 📁 " + f.path : ""}</div>
     </div>
     <div class="fileBtns">
       <button class="iconBtn previewIco pvBtn" data-id="${f.id}">👁️</button>
       <button class="iconBtn dlIco dlBtn" data-id="${f.id}">⬇️</button>
-      <button class="iconBtn renameIco rnBtn" data-id="${f.id}" data-name="${f.name}">✏️</button>
+      <button class="iconBtn renameIco rnBtn" data-id="${f.id}" data-name="${f.name.replace(/"/g,'&quot;')}">✏️</button>
       <button class="iconBtn delIco trBtn" data-id="${f.id}">🗑️</button>
     </div>
   </div>`;
 }
 
 function bindEvents() {
+  // Folder: click to open, drag events
   document.querySelectorAll(".folderCard").forEach(el => {
+    const fp = el.dataset.fp;
+    const name = el.dataset.folder;
+
     el.onclick = e => {
       if (e.target.closest(".fRename") || e.target.closest(".fDel")) return;
-      path = [...path, el.dataset.folder]; history.pushState({}, "", ""); render();
+      path = [...path, name]; history.pushState({}, "", ""); render();
     };
+
+    // Folder drag-start (to move folder)
+    el.addEventListener("dragstart", e => {
+      if (e.target.closest(".fRename") || e.target.closest(".fDel")) { e.preventDefault(); return; }
+      onFolderDragStart(e, fp);
+    });
+
+    // Folder as drop target (receive files or folders)
+    el.addEventListener("dragover",  e => onFolderDragOver(e, fp));
+    el.addEventListener("dragleave", e => onFolderDragLeave(e, fp));
+    el.addEventListener("drop",      e => onFolderDrop(e, fp));
+    el.addEventListener("dragend",   onDragEnd);
   });
-  document.querySelectorAll(".fRename").forEach(el => { el.onclick = e => { e.stopPropagation(); openRename("folder", null, el.dataset.name, el.dataset.fp); }; });
-  document.querySelectorAll(".fDel").forEach(el => { el.onclick = e => { e.stopPropagation(); delFolder(el.dataset.fp); }; });
+
+  document.querySelectorAll(".fRename").forEach(el => {
+    el.onclick = e => { e.stopPropagation(); openRename("folder", null, el.dataset.name, el.dataset.fp); };
+  });
+  document.querySelectorAll(".fDel").forEach(el => {
+    el.onclick = e => { e.stopPropagation(); delFolder(el.dataset.fp); };
+  });
+
+  // File cards: drag to move into folder
+  document.querySelectorAll(".fileCard[draggable='true']").forEach(el => {
+    const id = el.dataset.id;
+    el.addEventListener("dragstart", e => {
+      if (e.target.closest(".iconBtn")) { e.preventDefault(); return; }
+      onFileDragStart(e, id);
+    });
+    el.addEventListener("dragend", onDragEnd);
+  });
+
   document.querySelectorAll(".pvBtn").forEach(el => el.onclick = () => preview(el.dataset.id));
   document.querySelectorAll(".dlBtn").forEach(el => el.onclick = () => dlFile(el.dataset.id));
   document.querySelectorAll(".rnBtn").forEach(el => el.onclick = () => openRename("file", el.dataset.id, el.dataset.name, ""));
   document.querySelectorAll(".trBtn").forEach(el => el.onclick = () => toRecycle(el.dataset.id));
 }
 
-// ── PREVIEW ──────────────────────────────────────────────
+// ── PREVIEW ───────────────────────────────────────────────
 async function preview(id) {
   const f = files.find(x => x.id === id); if (!f) return;
   const ext = f.name.split(".").pop().toLowerCase();
@@ -678,7 +801,7 @@ async function preview(id) {
     html = `<div style="text-align:center;padding:20px">
       <div style="font-size:56px">${icon(f.name)}</div>
       <p style="margin:12px 0;font-weight:600;font-size:15px">${f.name}</p>
-      <p style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:16px">${fmtSize(f.size||0)}</p>
+      <p style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:16px">${fmtSize(f.size || 0)}</p>
     </div>`;
   }
   html += `<div class="actBtns">
@@ -693,7 +816,7 @@ document.getElementById("previewClose").onclick = () => {
   document.getElementById("previewContent").innerHTML = "";
 };
 
-// ── DOWNLOAD ─────────────────────────────────────────────
+// ── DOWNLOAD ──────────────────────────────────────────────
 async function dlFile(id) {
   const f = files.find(x => x.id === id); if (!f) return;
   toast("Download শুরু হচ্ছে...", "info");
@@ -708,27 +831,30 @@ async function dlFile(id) {
     document.body.appendChild(a); a.click();
     setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
     toast("Download সম্পন্ন ✅");
-  } catch { window.open(url, "_blank"); toast("নতুন tab এ খুলছে", "info"); }
+  } catch {
+    window.open(url, "_blank");
+    toast("নতুন tab এ খুলছে", "info");
+  }
 }
 
-// ── RECYCLE ──────────────────────────────────────────────
+// ── RECYCLE BIN ───────────────────────────────────────────
 async function toRecycle(id) {
   const f = files.find(x => x.id === id); if (!f) return;
   f.deletedAt = new Date().toLocaleDateString("bn-IN");
   recycle.unshift(f); files = files.filter(x => x.id !== id);
   saveCache(); renderStats(); render(); updateBinCount();
   toast("Recycle Bin এ গেছে 🗑️", "info");
-  await saveDataAndPin();
+  await saveData();
 }
 
 async function delFolder(fp) {
   if (!confirm("এই folder Recycle Bin এ যাবে। নিশ্চিত?")) return;
-  files.filter(f => (f.path||"") === fp || (f.path||"").startsWith(fp + "/"))
+  files.filter(f => (f.path || "") === fp || (f.path || "").startsWith(fp + "/"))
     .forEach(f => { f.deletedAt = new Date().toLocaleDateString("bn-IN"); recycle.unshift(f); });
-  files = files.filter(f => !((f.path||"") === fp || (f.path||"").startsWith(fp + "/")));
+  files = files.filter(f => !((f.path || "") === fp || (f.path || "").startsWith(fp + "/")));
   saveCache(); renderStats(); render(); updateBinCount();
   toast("Folder Recycle Bin এ গেছে", "info");
-  await saveDataAndPin();
+  await saveData();
 }
 
 function renderRecycle() {
@@ -737,7 +863,7 @@ function renderRecycle() {
   list.innerHTML = recycle.map(f => `
     <div class="fileCard">
       <div class="fileIco">${icon(f.name)}</div>
-      <div class="fileInfo"><div class="fileName">${f.name}</div><div class="fileMeta">${fmtSize(f.size||0)} · মুছেছে: ${f.deletedAt||""}</div></div>
+      <div class="fileInfo"><div class="fileName">${f.name}</div><div class="fileMeta">${fmtSize(f.size || 0)} · মুছেছে: ${f.deletedAt || ""}</div></div>
       <div class="fileBtns">
         <button class="iconBtn restoreIco rBtn" data-id="${f.id}">♻️</button>
         <button class="iconBtn delIco pBtn" data-id="${f.id}">❌</button>
@@ -752,14 +878,14 @@ async function restore(id) {
   delete f.deletedAt; files.unshift(f); recycle = recycle.filter(x => x.id !== id);
   saveCache(); renderStats(); renderRecycle(); updateBinCount();
   toast("ফাইল পুনরুদ্ধার হয়েছে ♻️");
-  await saveDataAndPin();
+  await saveData();
 }
 
 async function permDel(id) {
   recycle = recycle.filter(x => x.id !== id);
   saveCache(); renderRecycle(); updateBinCount();
   toast("চিরতরে মুছে গেছে ❌", "err");
-  await saveDataAndPin();
+  await saveData();
 }
 
 document.getElementById("emptyBinBtn").onclick = async () => {
@@ -767,12 +893,12 @@ document.getElementById("emptyBinBtn").onclick = async () => {
   if (!confirm("সব ফাইল চিরতরে মুছে যাবে। নিশ্চিত?")) return;
   recycle = []; saveCache(); renderRecycle(); updateBinCount();
   toast("Recycle Bin খালি হয়েছে 🗑️", "err");
-  await saveDataAndPin();
+  await saveData();
 };
 
-// ── UTILS ────────────────────────────────────────────────
+// ── UTILS ─────────────────────────────────────────────────
 function icon(n) {
-  const e = (n||"").split(".").pop().toLowerCase();
+  const e = (n || "").split(".").pop().toLowerCase();
   if (["jpg","jpeg","png","gif","webp","svg"].includes(e)) return "🖼️";
   if (["mp4","mkv","avi","mov","webm"].includes(e))        return "🎬";
   if (["mp3","wav","ogg","aac","m4a"].includes(e))         return "🎵";
@@ -786,11 +912,11 @@ function icon(n) {
 function fmtSize(b) {
   if (!b) return "0 B";
   if (b < 1024) return b + " B";
-  if (b < 1048576) return (b/1024).toFixed(1) + " KB";
-  if (b < 1073741824) return (b/1048576).toFixed(1) + " MB";
-  return (b/1073741824).toFixed(2) + " GB";
+  if (b < 1048576) return (b / 1024).toFixed(1) + " KB";
+  if (b < 1073741824) return (b / 1048576).toFixed(1) + " MB";
+  return (b / 1073741824).toFixed(2) + " GB";
 }
-function toast(msg, type="ok") {
+function toast(msg, type = "ok") {
   const t = document.createElement("div");
   t.className = `toast ${type}`; t.textContent = msg;
   document.body.appendChild(t); setTimeout(() => t.remove(), 2800);
