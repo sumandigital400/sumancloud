@@ -79,18 +79,14 @@ body{min-height:100vh;background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460)
 .cancelBtn{background:rgba(255,255,255,0.1);color:#fff}
 .confirmBtn{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff}
 .previewOverlay{position:fixed;inset:0;background:rgba(0,0,0,0.9);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px}
-.previewBox{background:#1a1a2e;border-radius:20px;padding:20px;max-width:95vw;max-height:95vh;overflow:auto;position:relative;min-width:300px}
+.previewBox{background:#1a1a2e;border-radius:20px;padding:20px;max-width:95vw;max-height:95vh;overflow:auto;position:relative;min-width:320px}
 .previewClose{position:absolute;top:12px;right:16px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;font-size:20px;cursor:pointer;border-radius:8px;padding:4px 10px;z-index:10}
 .previewBox img,.previewBox video,.previewBox audio{max-width:100%;max-height:70vh;border-radius:10px}
 .pdf-actions{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
-.pdf-btn{padding:9px 16px;border-radius:10px;border:none;font-size:13px;font-weight:700;cursor:pointer}
+.pdf-btn{padding:9px 16px;border-radius:10px;border:none;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px}
 .pdf-open{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff}
 .pdf-dl{background:rgba(81,207,102,0.2);border:1px solid rgba(81,207,102,0.4);color:#51cf66}
-.syncRow{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:12px;color:rgba(255,255,255,0.4)}
-.syncDot{width:8px;height:8px;border-radius:50%;background:#51cf66;flex-shrink:0}
-.syncDot.loading{background:#ffd43b;animation:pulse 1s infinite}
-.syncDot.err{background:#ff6b6b}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.pdf-thumb{width:100%;max-width:500px;height:400px;border:none;border-radius:12px;background:#fff}
 .toast{position:fixed;top:20px;right:20px;padding:11px 18px;border-radius:12px;font-weight:600;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,0.3);animation:fadeIn .3s}
 .toast.ok{background:#51cf66;color:#fff}
 .toast.err{background:#ff6b6b;color:#fff}
@@ -122,16 +118,10 @@ body{min-height:100vh;background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460)
   <div class="diskBox">
     <div class="diskTop">
       <div style="display:flex;align-items:center;gap:6px"><span>💾</span><b style="font-size:14px">Storage</b></div>
-      <span id="diskPct" style="font-size:12px;color:rgba(255,255,255,0.5)">Unlimited ∞</span>
+      <span id="diskPct" style="font-size:12px;color:rgba(255,255,255,0.5)">0%</span>
     </div>
-    <div class="diskBar"><div class="diskFill" id="diskFill" style="width:0%;background:linear-gradient(90deg,#51cf66,#94d82d)"></div></div>
-    <div class="diskBot">
-      <span id="diskUsed">0 MB ব্যবহার</span>
-      <div class="syncRow" style="margin:0">
-        <div class="syncDot" id="syncDot"></div>
-        <span id="syncStatus">Synced</span>
-      </div>
-    </div>
+    <div class="diskBar"><div class="diskFill" id="diskFill"></div></div>
+    <div class="diskBot"><span id="diskUsed">0 MB</span><span>মোট 25 GB</span></div>
   </div>
 
   <div class="tabs">
@@ -144,8 +134,7 @@ body{min-height:100vh;background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460)
       <input type="file" id="fileInput" multiple hidden/>
       <input type="file" id="folderInput" webkitdirectory multiple hidden/>
       <div style="font-size:30px;margin-bottom:6px">📤</div>
-      <div style="font-size:13px;font-weight:600;margin-bottom:4px">Drag করো অথবা button click করো</div>
-      <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:8px">সব file Telegram এ store হবে • Unlimited</div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:8px">Drag করো অথবা button click করো</div>
       <div class="upBtns">
         <button class="upBtn" id="fileBtnTrigger">📄 Files</button>
         <button class="upBtn" id="folderBtnTrigger">📁 Folder</button>
@@ -162,7 +151,7 @@ body{min-height:100vh;background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460)
       <button class="tbBtn active" data-filter="all">সব</button>
       <button class="tbBtn" data-filter="photo">🖼️ Photo</button>
       <button class="tbBtn" data-filter="pdf">📕 PDF</button>
-      <button class="tbBtn" data-filter="video">🎬 Video</button>
+      <button class="tbBtn" data-filter="text">📄 Text</button>
       <button class="tbBtn" data-filter="others">📎 Others</button>
     </div>
 
@@ -232,496 +221,399 @@ body{min-height:100vh;background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460)
 </div>
 
 <script>
-// ══════════════════════════════════════════════
-// CONFIG
-// ══════════════════════════════════════════════
-const MASTER_KEY_VAL = "1921131514";
-const SESSION_KEY    = "suman_session";
-const SESSION_TIMEOUT= 30 * 60 * 1000;
-const TG_TOKEN       = "8703347824:AAHT2yKhqV5fp2j70H3bl9gQORqd1p1wOJ4";
-const TG_CHAT        = "-1003981955339";
-const TG_API         = `https://api.telegram.org/bot${TG_TOKEN}`;
-const DATA_TAG       = "SUMAN_CLOUD_DATA_V3:";
+const MASTER_KEY_VAL="1921131514";
+const SESSION_KEY="suman_session";
+const SESSION_TIMEOUT=30*60*1000;
+const CLOUD_NAME="dop2hrguf";
+const UPLOAD_PRESET="te0dmvlx";
+const TG_TOKEN="8703347824:AAHT2yKhqV5fp2j70H3bl9gQORqd1p1wOJ4";
+const TG_CHAT="-1003981955339";
+const TG_API=`https://api.telegram.org/bot${TG_TOKEN}`;
+// JSONbin সরানো হয়েছে — সব data Telegram এ
+let DATA_MSG_ID=localStorage.getItem("tg_data_msg_id")||null;
 
-// ══════════════════════════════════════════════
-// STATE
-// ══════════════════════════════════════════════
-let PASS          = localStorage.getItem("suman_pw") || "Suman400@";
-let inactivityTimer = null;
-let allFiles      = [];
-let recycleBin    = [];
-let currentPath   = [];
-let currentSort   = "new";
-let currentFilter = "all";
-let activeTab     = "files";
-let renameTarget  = null;
-// dataMsgId — stored in localStorage for fast re-sync; shared across devices via Telegram
-let dataMsgId     = localStorage.getItem("tg_data_msg_id") || null;
+let PASS=localStorage.getItem("suman_pw")||"Suman400@";
+let inactivityTimer=null;
+let allFiles=[];
+let recycleBin=[];
+let currentPath=[];
+let currentSort="new";
+let currentFilter="all";
+let activeTab="files";
+let renameTarget=null;
 
-// ══════════════════════════════════════════════
-// INIT
-// ══════════════════════════════════════════════
-window.addEventListener("load", () => {
-  const t = sessionStorage.getItem(SESSION_KEY);
-  if (t && Date.now() - parseInt(t) < SESSION_TIMEOUT) showApp();
-});
-window.addEventListener("popstate", () => {
-  if (activeTab === "files" && currentPath.length > 0) { currentPath.pop(); renderView(); }
+window.addEventListener("load",()=>{
+  const t=sessionStorage.getItem(SESSION_KEY);
+  if(t&&Date.now()-parseInt(t)<SESSION_TIMEOUT) showApp();
 });
 
-// ══════════════════════════════════════════════
-// SESSION
-// ══════════════════════════════════════════════
-function saveSession()  { sessionStorage.setItem(SESSION_KEY, Date.now()); }
-function resetInactivityTimer() {
-  clearTimeout(inactivityTimer);
-  inactivityTimer = setTimeout(() => { showToast("৩০ মিনিট inactive — logout", "err"); setTimeout(logout, 1500); }, SESSION_TIMEOUT);
-  saveSession();
-}
-function startListeners() {
-  ["click","keydown","mousemove","touchstart","scroll"].forEach(e => document.addEventListener(e, resetInactivityTimer, { passive: true }));
-}
-function showApp() {
-  document.getElementById("loginPage").classList.add("hidden");
-  document.getElementById("appPage").classList.remove("hidden");
-  loadFiles();
-  resetInactivityTimer();
-  startListeners();
-}
-function logout() {
-  sessionStorage.removeItem(SESSION_KEY);
-  clearTimeout(inactivityTimer);
-  document.getElementById("loginPage").classList.remove("hidden");
-  document.getElementById("appPage").classList.add("hidden");
-  document.getElementById("pwInput").value = "";
-  document.getElementById("pwInput").classList.remove("err");
-  document.getElementById("errMsg").style.display = "none";
-}
-
-// ══════════════════════════════════════════════
-// LOGIN
-// ══════════════════════════════════════════════
-document.getElementById("loginBtn").addEventListener("click", () => {
-  const v = document.getElementById("pwInput").value;
-  if (v === PASS) { saveSession(); showApp(); }
-  else {
-    document.getElementById("pwInput").classList.add("err");
-    document.getElementById("errMsg").style.display = "block";
-    document.getElementById("pwInput").value = "";
+window.addEventListener("popstate",()=>{
+  if(activeTab==="files"&&currentPath.length>0){
+    currentPath.pop(); renderView();
+    if(currentPath.length>0) history.pushState({},"","");
   }
 });
-document.getElementById("pwInput").addEventListener("keydown", e => { if (e.key === "Enter") document.getElementById("loginBtn").click(); });
-document.getElementById("logoutBtn").addEventListener("click", logout);
 
-// ══════════════════════════════════════════════
-// PASSWORD CHANGE
-// ══════════════════════════════════════════════
-let masterVerified = false;
-document.getElementById("changePwBtn").addEventListener("click", () => {
-  masterVerified = false;
-  ["masterKeyInput","newPwInput","confirmPwInput"].forEach(id => document.getElementById(id).value = "");
-  ["masterKeyErr","pwMatchErr"].forEach(id => document.getElementById(id).style.display = "none");
+function saveSession(){sessionStorage.setItem(SESSION_KEY,Date.now());}
+function resetInactivityTimer(){
+  clearTimeout(inactivityTimer);
+  inactivityTimer=setTimeout(()=>{showToast("৩০ মিনিট inactive — logout","err");setTimeout(logout,1500);},SESSION_TIMEOUT);
+  saveSession();
+}
+function startListeners(){["click","keydown","mousemove","touchstart","scroll"].forEach(e=>document.addEventListener(e,resetInactivityTimer,{passive:true}));}
+function showApp(){
+  document.getElementById("loginPage").classList.add("hidden");
+  document.getElementById("appPage").classList.remove("hidden");
+  loadFiles();resetInactivityTimer();startListeners();
+}
+function logout(){
+  sessionStorage.removeItem(SESSION_KEY);clearTimeout(inactivityTimer);
+  document.getElementById("loginPage").classList.remove("hidden");
+  document.getElementById("appPage").classList.add("hidden");
+  document.getElementById("pwInput").value="";
+  document.getElementById("pwInput").classList.remove("err");
+  document.getElementById("errMsg").style.display="none";
+}
+
+document.getElementById("loginBtn").addEventListener("click",()=>{
+  const v=document.getElementById("pwInput").value;
+  if(v===PASS){saveSession();showApp();}
+  else{document.getElementById("pwInput").classList.add("err");document.getElementById("errMsg").style.display="block";document.getElementById("pwInput").value="";}
+});
+document.getElementById("pwInput").addEventListener("keydown",e=>{if(e.key==="Enter")document.getElementById("loginBtn").click();});
+document.getElementById("logoutBtn").addEventListener("click",logout);
+
+let masterVerified=false;
+document.getElementById("changePwBtn").addEventListener("click",()=>{
+  masterVerified=false;
+  ["masterKeyInput","newPwInput","confirmPwInput"].forEach(id=>document.getElementById(id).value="");
+  ["masterKeyErr","pwMatchErr"].forEach(id=>document.getElementById(id).style.display="none");
   document.getElementById("newPwInput").classList.add("hidden");
   document.getElementById("confirmPwInput").classList.add("hidden");
-  document.getElementById("verifyMasterBtn").textContent = "যাচাই করুন";
+  document.getElementById("verifyMasterBtn").textContent="যাচাই করুন";
   document.getElementById("changePwModal").classList.remove("hidden");
 });
-document.getElementById("cancelPwBtn").addEventListener("click", () => document.getElementById("changePwModal").classList.add("hidden"));
-document.getElementById("verifyMasterBtn").addEventListener("click", () => {
-  if (!masterVerified) {
-    if (document.getElementById("masterKeyInput").value === MASTER_KEY_VAL) {
-      masterVerified = true;
-      document.getElementById("masterKeyErr").style.display = "none";
+document.getElementById("cancelPwBtn").addEventListener("click",()=>document.getElementById("changePwModal").classList.add("hidden"));
+document.getElementById("verifyMasterBtn").addEventListener("click",()=>{
+  if(!masterVerified){
+    if(document.getElementById("masterKeyInput").value===MASTER_KEY_VAL){
+      masterVerified=true;
+      document.getElementById("masterKeyErr").style.display="none";
       document.getElementById("newPwInput").classList.remove("hidden");
       document.getElementById("confirmPwInput").classList.remove("hidden");
-      document.getElementById("verifyMasterBtn").textContent = "Save করুন";
-      showToast("Master Key সঠিক!", "info");
-    } else { document.getElementById("masterKeyErr").style.display = "block"; }
-  } else {
-    const np = document.getElementById("newPwInput").value;
-    const cp = document.getElementById("confirmPwInput").value;
-    if (!np) { showToast("Password খালি রাখা যাবে না", "err"); return; }
-    if (np !== cp) { document.getElementById("pwMatchErr").style.display = "block"; return; }
-    PASS = np; localStorage.setItem("suman_pw", PASS);
+      document.getElementById("verifyMasterBtn").textContent="Save করুন";
+      showToast("Master Key সঠিক!","info");
+    }else{document.getElementById("masterKeyErr").style.display="block";}
+  }else{
+    const np=document.getElementById("newPwInput").value;
+    const cp=document.getElementById("confirmPwInput").value;
+    if(!np){showToast("Password খালি রাখা যাবে না","err");return;}
+    if(np!==cp){document.getElementById("pwMatchErr").style.display="block";return;}
+    PASS=np;localStorage.setItem("suman_pw",PASS);
     document.getElementById("changePwModal").classList.add("hidden");
     showToast("Password পরিবর্তন হয়েছে ✅");
   }
 });
 
-// ══════════════════════════════════════════════
-// TABS
-// ══════════════════════════════════════════════
-document.querySelectorAll(".tab").forEach(t => {
-  t.addEventListener("click", () => {
-    document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
-    t.classList.add("active"); activeTab = t.dataset.tab;
-    document.getElementById("filesTab").classList.toggle("hidden", activeTab !== "files");
-    document.getElementById("recycleTab").classList.toggle("hidden", activeTab !== "recycle");
-    if (activeTab === "recycle") renderRecycle();
+document.querySelectorAll(".tab").forEach(t=>{
+  t.addEventListener("click",()=>{
+    document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+    t.classList.add("active");
+    activeTab=t.dataset.tab;
+    document.getElementById("filesTab").classList.toggle("hidden",activeTab!=="files");
+    document.getElementById("recycleTab").classList.toggle("hidden",activeTab!=="recycle");
+    if(activeTab==="recycle") renderRecycle();
   });
 });
 
-// ══════════════════════════════════════════════
-// SORT & FILTER
-// ══════════════════════════════════════════════
-document.querySelectorAll("[data-sort]").forEach(b => {
-  b.addEventListener("click", () => { document.querySelectorAll("[data-sort]").forEach(x => x.classList.remove("active")); b.classList.add("active"); currentSort = b.dataset.sort; renderView(); });
-});
-document.querySelectorAll("[data-filter]").forEach(b => {
-  b.addEventListener("click", () => { document.querySelectorAll("[data-filter]").forEach(x => x.classList.remove("active")); b.classList.add("active"); currentFilter = b.dataset.filter; renderView(); });
-});
-
-// ══════════════════════════════════════════════
-// TELEGRAM CORE
-// ══════════════════════════════════════════════
-async function tgRequest(method, params = {}) {
-  const res = await fetch(`${TG_API}/${method}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(params)
+document.querySelectorAll("[data-sort]").forEach(b=>{
+  b.addEventListener("click",()=>{
+    document.querySelectorAll("[data-sort]").forEach(x=>x.classList.remove("active"));
+    b.classList.add("active");currentSort=b.dataset.sort;renderView();
   });
-  return res.json();
-}
+});
+document.querySelectorAll("[data-filter]").forEach(b=>{
+  b.addEventListener("click",()=>{
+    document.querySelectorAll("[data-filter]").forEach(x=>x.classList.remove("active"));
+    b.classList.add("active");currentFilter=b.dataset.filter;renderView();
+  });
+});
 
-async function uploadToTelegram(file) {
-  const fd = new FormData();
-  fd.append("chat_id", TG_CHAT);
-  const ext = file.name.split(".").pop().toLowerCase();
-  const isPhoto = ["jpg","jpeg","png","gif","webp"].includes(ext);
-  const isVideo = ["mp4","mov","avi","mkv","webm"].includes(ext);
-  const isAudio = ["mp3","wav","ogg","aac","m4a"].includes(ext);
+document.getElementById("newFolderBtn").addEventListener("click",e=>{
+  e.stopPropagation();
+  document.getElementById("newFolderInput").value="";
+  document.getElementById("newFolderModal").classList.remove("hidden");
+  setTimeout(()=>document.getElementById("newFolderInput").focus(),100);
+});
+document.getElementById("cancelFolderBtn").addEventListener("click",()=>document.getElementById("newFolderModal").classList.add("hidden"));
+document.getElementById("createFolderBtn").addEventListener("click",createFolder);
+document.getElementById("newFolderInput").addEventListener("keydown",e=>{if(e.key==="Enter")createFolder();});
 
-  let method, field;
-  if (isPhoto)      { method = "sendPhoto";    field = "photo"; }
-  else if (isVideo) { method = "sendVideo";    field = "video"; }
-  else if (isAudio) { method = "sendAudio";    field = "audio"; }
-  else              { method = "sendDocument"; field = "document"; }
-
-  fd.append(field, file, file.name);
-  const res  = await fetch(`${TG_API}/${method}`, { method: "POST", body: fd });
-  const data = await res.json();
-  if (!data.ok) throw new Error(data.description || "Upload failed");
-
-  const msg    = data.result;
-  const fileObj= msg.document || msg.photo?.[msg.photo.length-1] || msg.video || msg.audio;
-  return fileObj.file_id;
-}
-
-async function getTgFileUrl(fileId) {
-  const data = await tgRequest("getFile", { file_id: fileId });
-  if (data.ok) return `https://api.telegram.org/file/bot${TG_TOKEN}/${data.result.file_path}`;
-  return null;
-}
-
-// ══════════════════════════════════════════════
-// DATA SAVE / LOAD  ← FIXED CROSS-DEVICE SYNC
-// ══════════════════════════════════════════════
-function setSyncStatus(state) {
-  // state: "ok" | "loading" | "err"
-  const dot = document.getElementById("syncDot");
-  const lbl = document.getElementById("syncStatus");
-  dot.className = "syncDot" + (state === "ok" ? "" : state === "loading" ? " loading" : " err");
-  lbl.textContent = state === "ok" ? "Synced" : state === "loading" ? "Syncing..." : "Sync Error";
-}
-
-function saveLocalCache() {
-  localStorage.setItem("suman_cache", JSON.stringify({ files: allFiles, recycle: recycleBin, msgId: dataMsgId }));
-}
-
-// Save data to Telegram as a pinned-style message
-async function saveFiles() {
-  saveLocalCache();
-  setSyncStatus("loading");
-  const payload = DATA_TAG + JSON.stringify({ files: allFiles, recycle: recycleBin });
-
-  try {
-    if (dataMsgId) {
-      const r = await tgRequest("editMessageText", {
-        chat_id: TG_CHAT, message_id: parseInt(dataMsgId), text: payload
-      });
-      if (r.ok) { setSyncStatus("ok"); return; }
-      // If edit fails (message too old etc.), fall through to send new
-    }
-    // Send a fresh message
-    const r = await tgRequest("sendMessage", { chat_id: TG_CHAT, text: payload });
-    if (r.ok) {
-      dataMsgId = String(r.result.message_id);
-      localStorage.setItem("tg_data_msg_id", dataMsgId);
-      saveLocalCache();
-      setSyncStatus("ok");
-    } else throw new Error(r.description);
-  } catch (e) {
-    setSyncStatus("err");
-    showToast("Sync সমস্যা হয়েছে", "err");
-  }
-}
-
-/**
- * CROSS-DEVICE FIX:
- * Strategy: scan recent channel messages for DATA_TAG.
- * getUpdates only works for bots receiving messages, NOT for reading channel history.
- * Instead we use getHistory via forwardMessages trick — but the simplest reliable
- * method for a channel bot is: when a message is saved, we also pin it, so we can
- * retrieve it via getChatPinnedMessage. If that fails, we scan backwards from a
- * known high offset using copyMessage ranges.
- *
- * ACTUAL FIX USED HERE:
- * We use the Telegram Bot API method to read channel messages directly.
- * Telegram doesn't expose getHistory for bots natively, BUT:
- * 1. We store dataMsgId in localStorage (works same device)
- * 2. For new devices — we PIN the data message so it's retrievable via getChatPinnedMessage
- * 3. Fallback: scan last 100 updates offset=-100 (old method) + also try negative IDs trick
- */
-async function loadFiles() {
-  setSyncStatus("loading");
-
-  // Step 1: Show cached data immediately (fast)
-  const cached = localStorage.getItem("suman_cache");
-  if (cached) {
-    try {
-      const c = JSON.parse(cached);
-      allFiles   = c.files   || [];
-      recycleBin = c.recycle || [];
-      if (c.msgId) dataMsgId = c.msgId;
-      updateDisk(); renderView(); updateBinCount();
-      updateStats();
-    } catch (e) {}
-  }
-
-  // Step 2: Try to load latest data from Telegram
-  await syncFromTelegram();
-}
-
-async function syncFromTelegram() {
-  setSyncStatus("loading");
-  let found = false;
-
-  // Method A: If we have a dataMsgId, fetch that specific message directly
-  if (dataMsgId) {
-    try {
-      // Telegram Bot API: copyMessage won't work, but we can forward to self and read
-      // Best approach: use getUpdates with no offset to find our pinned msg
-      // Actually — use the pinned message approach (most reliable cross-device)
-      const pinRes = await tgRequest("getChatPinnedMessage", { chat_id: TG_CHAT });
-      if (pinRes.ok && pinRes.result) {
-        const txt = pinRes.result.text || "";
-        if (txt.startsWith(DATA_TAG)) {
-          const newMsgId = String(pinRes.result.message_id);
-          const rec = JSON.parse(txt.replace(DATA_TAG, ""));
-          allFiles   = rec.files   || [];
-          recycleBin = rec.recycle || [];
-          dataMsgId  = newMsgId;
-          localStorage.setItem("tg_data_msg_id", dataMsgId);
-          saveLocalCache();
-          found = true;
-        }
-      }
-    } catch (e) {}
-  }
-
-  // Method B: Scan getUpdates (works if updates haven't been consumed)
-  if (!found) {
-    try {
-      const res  = await fetch(`${TG_API}/getUpdates?limit=100&offset=-100`);
-      const data = await res.json();
-      if (data.ok) {
-        let best = null;
-        for (const u of data.result) {
-          const txt = u.channel_post?.text || u.message?.text || "";
-          if (txt.startsWith(DATA_TAG)) {
-            const id = String(u.channel_post?.message_id || u.message?.message_id);
-            if (!best || parseInt(id) > parseInt(best.id)) best = { id, txt };
-          }
-        }
-        if (best) {
-          dataMsgId = best.id;
-          localStorage.setItem("tg_data_msg_id", dataMsgId);
-          const rec = JSON.parse(best.txt.replace(DATA_TAG, ""));
-          allFiles   = rec.files   || [];
-          recycleBin = rec.recycle || [];
-          saveLocalCache();
-          found = true;
-        }
-      }
-    } catch (e) {}
-  }
-
-  // Method C: Try to read the specific message ID we saved earlier via forwardMessages
-  if (!found && dataMsgId) {
-    try {
-      // Forward to same chat temporarily to get content
-      const fwdRes = await tgRequest("forwardMessage", {
-        chat_id: TG_CHAT,
-        from_chat_id: TG_CHAT,
-        message_id: parseInt(dataMsgId)
-      });
-      if (fwdRes.ok) {
-        const txt = fwdRes.result.text || "";
-        if (txt.startsWith(DATA_TAG)) {
-          const rec = JSON.parse(txt.replace(DATA_TAG, ""));
-          allFiles   = rec.files   || [];
-          recycleBin = rec.recycle || [];
-          // Delete the forwarded copy immediately
-          await tgRequest("deleteMessage", { chat_id: TG_CHAT, message_id: fwdRes.result.message_id });
-          saveLocalCache();
-          found = true;
-        }
-      }
-    } catch (e) {}
-  }
-
-  if (found) {
-    updateDisk(); renderView(); updateBinCount(); updateStats();
-    setSyncStatus("ok");
-  } else {
-    // No data found from Telegram — use cache or show empty
-    setSyncStatus(localStorage.getItem("suman_cache") ? "ok" : "err");
-  }
-}
-
-// After saving, pin the data message so any new device can find it via getChatPinnedMessage
-async function saveFilesAndPin() {
+async function createFolder(){
+  const name=document.getElementById("newFolderInput").value.trim();
+  if(!name){showToast("Folder এর নাম দিন","err");return;}
+  const cur=currentPath.join("/");
+  const folderPath=cur?cur+"/"+name:name;
+  allFiles.push({id:"folder_placeholder_"+Date.now(),name:".folder",path:folderPath,size:0,url:"",date:new Date().toLocaleDateString("bn-IN"),ts:Date.now(),isPlaceholder:true});
   await saveFiles();
-  if (dataMsgId) {
-    try {
-      await tgRequest("pinChatMessage", {
-        chat_id: TG_CHAT,
-        message_id: parseInt(dataMsgId),
-        disable_notification: true
+  document.getElementById("newFolderModal").classList.add("hidden");
+  renderView();showToast("Folder তৈরি হয়েছে ✅");
+}
+
+document.getElementById("cancelRenameBtn").addEventListener("click",()=>document.getElementById("renameModal").classList.add("hidden"));
+document.getElementById("confirmRenameBtn").addEventListener("click",doRename);
+document.getElementById("renameInput").addEventListener("keydown",e=>{if(e.key==="Enter")doRename();});
+
+function openRename(type,id,oldName,oldPath){
+  renameTarget={type,id,oldName,oldPath};
+  document.getElementById("renameInput").value=oldName;
+  document.getElementById("renameModal").classList.remove("hidden");
+  setTimeout(()=>document.getElementById("renameInput").focus(),100);
+}
+
+async function doRename(){
+  const newName=document.getElementById("renameInput").value.trim();
+  if(!newName){showToast("নাম দিন","err");return;}
+  if(!renameTarget)return;
+  if(renameTarget.type==="file"){
+    const f=allFiles.find(x=>x.id===renameTarget.id);
+    if(f)f.name=newName;
+  }else{
+    const oldFP=renameTarget.oldPath;
+    const parts=oldFP.split("/");parts[parts.length-1]=newName;
+    const newFP=parts.join("/");
+    allFiles.forEach(f=>{
+      if((f.path||"")===oldFP)f.path=newFP;
+      else if((f.path||"").startsWith(oldFP+"/"))f.path=newFP+f.path.slice(oldFP.length);
+    });
+  }
+  await saveFiles();
+  document.getElementById("renameModal").classList.add("hidden");
+  renderView();showToast("Rename হয়েছে ✅");
+}
+
+// ── TELEGRAM DATA SAVE/LOAD ──────────────────────────────
+async function saveFiles(){
+  saveCache();
+  const payload=JSON.stringify({files:allFiles,recycle:recycleBin});
+  try{
+    if(DATA_MSG_ID){
+      // আগের message edit করো
+      await fetch(`${TG_API}/editMessageText`,{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({chat_id:TG_CHAT,message_id:parseInt(DATA_MSG_ID),text:"SUMAN_CLOUD_DATA:"+payload})
       });
-    } catch (e) {}
-  }
-}
-
-function updateStats() {
-  document.getElementById("stats").textContent = allFiles.filter(f => !f.isPlaceholder).length + " ফাইল";
-}
-function updateBinCount() {
-  const el = document.getElementById("binCount");
-  el.textContent = recycleBin.length ? ` (${recycleBin.length})` : "";
-}
-
-// ══════════════════════════════════════════════
-// UPLOAD
-// ══════════════════════════════════════════════
-document.getElementById("fileBtnTrigger").addEventListener("click", e => { e.stopPropagation(); document.getElementById("fileInput").click(); });
-document.getElementById("folderBtnTrigger").addEventListener("click", e => { e.stopPropagation(); document.getElementById("folderInput").click(); });
-document.getElementById("fileInput").addEventListener("change", e => { uploadCollected(Array.from(e.target.files).map(f => ({ file: f, path: currentPath.join("/") }))); e.target.value = ""; });
-document.getElementById("folderInput").addEventListener("change", e => {
-  const cur = currentPath.join("/");
-  const col = Array.from(e.target.files).map(f => {
-    const parts = f.webkitRelativePath.split("/"); parts.pop();
-    return { file: f, path: cur ? cur + "/" + parts.join("/") : parts.join("/") };
-  });
-  uploadCollected(col); e.target.value = "";
-});
-document.getElementById("uploadArea").addEventListener("dragover", e => { e.preventDefault(); e.currentTarget.classList.add("drag"); });
-document.getElementById("uploadArea").addEventListener("dragleave", e => e.currentTarget.classList.remove("drag"));
-document.getElementById("uploadArea").addEventListener("drop", async e => {
-  e.preventDefault(); e.currentTarget.classList.remove("drag");
-  const cur = currentPath.join("/");
-  const col = [];
-  if (e.dataTransfer.items) {
-    for (let item of e.dataTransfer.items) {
-      const en = item.webkitGetAsEntry();
-      if (en) await traverseEntry(en, cur, col);
+    }else{
+      // নতুন message পাঠাও
+      const res=await fetch(`${TG_API}/sendMessage`,{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({chat_id:TG_CHAT,text:"SUMAN_CLOUD_DATA:"+payload})
+      });
+      const data=await res.json();
+      if(data.ok){
+        DATA_MSG_ID=String(data.result.message_id);
+        localStorage.setItem("tg_data_msg_id",DATA_MSG_ID);
+      }
     }
-  } else Array.from(e.dataTransfer.files).forEach(f => col.push({ file: f, path: cur }));
-  if (col.length) uploadCollected(col);
+  }catch(e){console.error("Save failed",e);}
+}
+
+async function loadFiles(){
+  // প্রথমে cache থেকে দেখাও
+  const cached=localStorage.getItem("suman_cache");
+  if(cached){
+    const c=JSON.parse(cached);
+    allFiles=c.files||[];recycleBin=c.recycle||[];
+    updateDisk();renderView();updateBinCount();
+    document.getElementById("stats").textContent=allFiles.filter(f=>!f.isPlaceholder).length+" ফাইল";
+  }
+  // Telegram থেকে latest data আনো
+  try{
+    if(DATA_MSG_ID){
+      const res=await fetch(`${TG_API}/forwardMessage`,{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({chat_id:TG_CHAT,from_chat_id:TG_CHAT,message_id:parseInt(DATA_MSG_ID)})
+      });
+    }
+    // getUpdates দিয়ে SUMAN_CLOUD_DATA message খুঁজি
+    const res=await fetch(`${TG_API}/getUpdates?limit=100&offset=-100`);
+    const data=await res.json();
+    if(data.ok){
+      // সব message এর মধ্যে SUMAN_CLOUD_DATA খুঁজো — সর্বশেষটা নাও
+      let found=null;
+      for(const u of data.result){
+        const txt=u.channel_post?.text||u.message?.text||"";
+        if(txt.startsWith("SUMAN_CLOUD_DATA:")){
+          found={id:u.channel_post?.message_id||u.message?.message_id, txt};
+        }
+      }
+      if(found){
+        DATA_MSG_ID=String(found.id);
+        localStorage.setItem("tg_data_msg_id",DATA_MSG_ID);
+        const rec=JSON.parse(found.txt.replace("SUMAN_CLOUD_DATA:",""));
+        allFiles=rec.files||[];recycleBin=rec.recycle||[];
+        saveCache();updateDisk();renderView();updateBinCount();
+        document.getElementById("stats").textContent=allFiles.filter(f=>!f.isPlaceholder).length+" ফাইল";
+      }
+    }
+  }catch(e){showToast("Sync সমস্যা","err");}
+}
+function saveCache(){localStorage.setItem("suman_cache",JSON.stringify({files:allFiles,recycle:recycleBin}));}
+function updateBinCount(){const el=document.getElementById("binCount");el.textContent=recycleBin.length?` (${recycleBin.length})`:""}
+
+document.getElementById("fileBtnTrigger").addEventListener("click",e=>{e.stopPropagation();document.getElementById("fileInput").click();});
+document.getElementById("folderBtnTrigger").addEventListener("click",e=>{e.stopPropagation();document.getElementById("folderInput").click();});
+document.getElementById("fileInput").addEventListener("change",e=>{
+  uploadCollected(Array.from(e.target.files).map(f=>({file:f,path:currentPath.join("/")})));
+  e.target.value="";
 });
-document.getElementById("searchBox").addEventListener("input", renderView);
-
-async function traverseEntry(entry, base, col) {
-  if (entry.isFile) await new Promise(r => entry.file(f => { col.push({ file: f, path: base }); r(); }));
-  else if (entry.isDirectory) {
-    const fp = base ? base + "/" + entry.name : entry.name;
-    const rd = entry.createReader();
-    await new Promise(r => rd.readEntries(async entries => { for (const e of entries) await traverseEntry(e, fp, col); r(); }));
-  }
-}
-
-async function uploadCollected(col) {
-  if (!col.length) return;
-  const bar = document.getElementById("progressBar"), fill = document.getElementById("progressFill");
-  bar.style.display = "block"; fill.style.width = "0%";
-  showToast(`${col.length}টি file upload হচ্ছে...`, "info");
-  let ok = 0;
-  for (let i = 0; i < col.length; i++) {
-    const { file, path } = col[i];
-    try {
-      const fileId = await uploadToTelegram(file);
-      allFiles.unshift({ id: "tg_" + Date.now() + "_" + i, name: file.name, path, size: file.size, fileId, date: new Date().toLocaleDateString("bn-IN"), ts: Date.now() });
-      ok++;
-    } catch (e) { showToast("Failed: " + file.name, "err"); }
-    fill.style.width = ((i + 1) / col.length * 100) + "%";
-  }
-  await saveFilesAndPin();   // ← pin after every upload so new devices find latest
-  setTimeout(() => { bar.style.display = "none"; }, 800);
-  updateStats(); updateDisk(); renderView();
-  showToast(`${ok}টি file upload হয়েছে ✅`);
-}
-
-// ══════════════════════════════════════════════
-// DISK
-// ══════════════════════════════════════════════
-function updateDisk() {
-  const used = allFiles.reduce((a, f) => a + (f.size || 0), 0);
-  document.getElementById("diskUsed").textContent = fmtSize(used) + " ব্যবহার";
-}
-
-// ══════════════════════════════════════════════
-// VIEW
-// ══════════════════════════════════════════════
-function renderView() {
-  const q   = document.getElementById("searchBox").value.toLowerCase().trim();
-  const cur = currentPath.join("/");
-  const backBtn = document.getElementById("backBtn");
-  currentPath.length > 0 ? backBtn.classList.remove("hidden") : backBtn.classList.add("hidden");
-
-  const bc = document.getElementById("breadcrumb");
-  bc.innerHTML = `<span class="crumb" data-path="">🏠 Home</span>`;
-  currentPath.forEach((p, i) => {
-    bc.innerHTML += `<span class="crumbSep">›</span><span class="crumb" data-path="${currentPath.slice(0, i+1).join("/")}">${p}</span>`;
+document.getElementById("folderInput").addEventListener("change",e=>{
+  const cur=currentPath.join("/");
+  const col=Array.from(e.target.files).map(f=>{
+    const parts=f.webkitRelativePath.split("/");parts.pop();
+    const rel=parts.join("/");
+    return{file:f,path:cur?cur+"/"+rel:rel};
   });
-  bc.querySelectorAll(".crumb").forEach(el => el.addEventListener("click", () => {
-    currentPath = el.dataset.path ? el.dataset.path.split("/") : []; renderView();
+  uploadCollected(col);e.target.value="";
+});
+document.getElementById("uploadArea").addEventListener("dragover",e=>{e.preventDefault();e.currentTarget.classList.add("drag");});
+document.getElementById("uploadArea").addEventListener("dragleave",e=>e.currentTarget.classList.remove("drag"));
+document.getElementById("uploadArea").addEventListener("drop",drop);
+document.getElementById("searchBox").addEventListener("input",renderView);
+
+async function drop(e){
+  e.preventDefault();e.currentTarget.classList.remove("drag");
+  const items=e.dataTransfer.items;
+  const cur=currentPath.join("/");
+  if(items){
+    const col=[];
+    for(let item of items){const en=item.webkitGetAsEntry();if(en)await traverseEntry(en,cur,col);}
+    if(col.length)await uploadCollected(col);
+  }else{
+    await uploadCollected(Array.from(e.dataTransfer.files).map(f=>({file:f,path:cur})));
+  }
+}
+
+async function traverseEntry(entry,base,col){
+  if(entry.isFile)await new Promise(r=>entry.file(f=>{col.push({file:f,path:base});r();}));
+  else if(entry.isDirectory){
+    const fp=base?base+"/"+entry.name:entry.name;
+    const rd=entry.createReader();
+    await new Promise(r=>rd.readEntries(async entries=>{for(let e of entries)await traverseEntry(e,fp,col);r();}));
+  }
+}
+
+async function uploadCollected(col){
+  if(!col.length)return;
+  const bar=document.getElementById("progressBar"),fill=document.getElementById("progressFill");
+  bar.style.display="block";fill.style.width="0%";
+  showToast("Upload শুরু হয়েছে...","info");
+  for(let i=0;i<col.length;i++){
+    const{file,path}=col[i];
+    const isPdf=/\.pdf$/i.test(file.name);
+    try{
+      let url="";
+      if(isPdf){
+        // PDF → Telegram
+        const fd=new FormData();
+        fd.append("chat_id",TG_CHAT);
+        fd.append("document",file,file.name);
+        const res=await fetch(`${TG_API}/sendDocument`,{method:"POST",body:fd});
+        const data=await res.json();
+        if(data.ok){
+          const fileId=data.result.document.file_id;
+          // Telegram file path আনো
+          const fp=await fetch(`${TG_API}/getFile?file_id=${fileId}`);
+          const fpData=await fp.json();
+          const filePath=fpData.result.file_path;
+          url=`${TG_API}/file/${filePath}`;
+          // কিন্তু এই URL browser এ direct open হয় না
+          // তাই file_id store করি, download এর সময় ব্যবহার করব
+          url=`tg://${fileId}`;
+        }else{
+          showToast("Failed: "+file.name,"err");
+        }
+      }else{
+        // বাকি সব → Cloudinary
+        const fd=new FormData();
+        fd.append("file",file);fd.append("upload_preset",UPLOAD_PRESET);fd.append("resource_type","auto");
+        const res=await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`,{method:"POST",body:fd});
+        const data=await res.json();
+        url=data.secure_url||"";
+      }
+      if(url)allFiles.unshift({id:"file_"+Date.now()+"_"+i,name:file.name,path,size:file.size,url,date:new Date().toLocaleDateString("bn-IN"),ts:Date.now()});
+    }catch(e){showToast("Failed: "+file.name,"err");}
+    fill.style.width=((i+1)/col.length*100)+"%";
+  }
+  await saveFiles();
+  setTimeout(()=>{bar.style.display="none";},800);
+  document.getElementById("stats").textContent=allFiles.filter(f=>!f.isPlaceholder).length+" ফাইল";
+  updateDisk();renderView();showToast(col.length+"টি ফাইল upload হয়েছে ✅");
+}
+
+function updateDisk(){
+  const total=25*1024*1024*1024,used=allFiles.reduce((a,f)=>a+f.size,0);
+  const pct=Math.min((used/total)*100,100);
+  const fill=document.getElementById("diskFill");
+  fill.style.width=pct+"%";
+  fill.style.background=pct>85?"linear-gradient(90deg,#ff6b6b,#f03e3e)":pct>60?"linear-gradient(90deg,#ffd43b,#fab005)":"linear-gradient(90deg,#51cf66,#94d82d)";
+  document.getElementById("diskPct").textContent=pct.toFixed(2)+"%";
+  document.getElementById("diskUsed").textContent=fmtSize(used)+" ব্যবহার";
+}
+
+function renderView(){
+  const q=document.getElementById("searchBox").value.toLowerCase().trim();
+  const cur=currentPath.join("/");
+  const backBtn=document.getElementById("backBtn");
+  if(currentPath.length>0)backBtn.classList.remove("hidden");
+  else backBtn.classList.add("hidden");
+
+  const bc=document.getElementById("breadcrumb");
+  bc.innerHTML=`<span class="crumb" data-path="">🏠 Home</span>`;
+  currentPath.forEach((p,i)=>{bc.innerHTML+=`<span class="crumbSep">›</span><span class="crumb" data-path="${currentPath.slice(0,i+1).join("/")}">${p}</span>`;});
+  bc.querySelectorAll(".crumb").forEach(el=>el.addEventListener("click",()=>{
+    const p=el.dataset.path;currentPath=p?p.split("/"):[];
+    if(currentPath.length>0)history.pushState({},"","");
+    renderView();
   }));
 
-  const list = document.getElementById("mainList");
-
-  const filterFile = f => {
-    if (currentFilter === "photo")  return /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(f.name);
-    if (currentFilter === "pdf")    return /\.pdf$/i.test(f.name);
-    if (currentFilter === "video")  return /\.(mp4|mkv|avi|mov|webm)$/i.test(f.name);
-    if (currentFilter === "others") return !/\.(jpg|jpeg|png|gif|webp|svg|pdf|mp4|mkv|avi|mov|webm|mp3|wav|ogg|aac)$/i.test(f.name);
+  const list=document.getElementById("mainList");
+  const filterFile=f=>{
+    if(currentFilter==="photo")return/\.(jpg|jpeg|png|gif|webp|svg)$/i.test(f.name);
+    if(currentFilter==="pdf")return/\.pdf$/i.test(f.name);
+    if(currentFilter==="text")return/\.(txt|md|doc|docx)$/i.test(f.name);
+    if(currentFilter==="others")return!/\.(jpg|jpeg|png|gif|webp|svg|pdf|txt|md|doc|docx)$/i.test(f.name);
     return true;
   };
 
-  if (q) {
-    let matched = allFiles.filter(f => !f.isPlaceholder && (f.name.toLowerCase().includes(q) || (f.path||"").toLowerCase().includes(q)) && filterFile(f));
-    matched = sortFiles(matched);
-    if (!matched.length) { list.innerHTML = `<div class="empty"><div>🔍</div><p>কোনো ফাইল পাওয়া যায়নি</p></div>`; return; }
-    list.innerHTML = matched.map(f => fileCardHTML(f, true)).join("");
-    attachEvents(); return;
+  if(q){
+    let matched=allFiles.filter(f=>!f.isPlaceholder&&(f.name.toLowerCase().includes(q)||(f.path||"").toLowerCase().includes(q))&&filterFile(f));
+    matched=sortFiles(matched);
+    if(!matched.length){list.innerHTML=`<div class="empty"><div>🔍</div><p>কোনো ফাইল পাওয়া যায়নি</p></div>`;return;}
+    list.innerHTML=matched.map(f=>fileCardHTML(f,true)).join("");
+    attachEvents();return;
   }
 
-  const subFolders = new Set();
-  allFiles.forEach(f => {
-    const fp = f.path || "";
-    if (cur === "") { if (fp) subFolders.add(fp.split("/")[0]); }
-    else if (fp.startsWith(cur + "/")) { const rest = fp.slice(cur.length + 1).split("/"); if (rest[0]) subFolders.add(rest[0]); }
+  const subFolders=new Set();
+  allFiles.forEach(f=>{
+    const fp=f.path||"";
+    if(cur===""){if(fp)subFolders.add(fp.split("/")[0]);}
+    else if(fp.startsWith(cur+"/")){const rest=fp.slice(cur.length+1).split("/");if(rest[0])subFolders.add(rest[0]);}
   });
 
-  let directFiles = allFiles.filter(f => !f.isPlaceholder && (f.path || "") === cur && filterFile(f));
-  directFiles = sortFiles(directFiles);
+  let directFiles=allFiles.filter(f=>!f.isPlaceholder&&(f.path||"")===cur&&filterFile(f));
+  directFiles=sortFiles(directFiles);
 
-  if (!subFolders.size && !directFiles.length) { list.innerHTML = `<div class="empty"><div>📭</div><p>এখানে কোনো ফাইল নেই</p></div>`; return; }
+  if(!subFolders.size&&!directFiles.length){list.innerHTML=`<div class="empty"><div>📭</div><p>এখানে কোনো ফাইল নেই</p></div>`;return;}
 
-  let html = "";
-  subFolders.forEach(folder => {
-    const fp    = cur ? cur + "/" + folder : folder;
-    const count = allFiles.filter(f => !f.isPlaceholder && ((f.path||"") === fp || (f.path||"").startsWith(fp + "/"))).length;
-    html += `<div class="folderCard" data-folder="${folder}" data-fpath="${fp}">
+  let html="";
+  subFolders.forEach(folder=>{
+    const fp=cur?cur+"/"+folder:folder;
+    const count=allFiles.filter(f=>!f.isPlaceholder&&((f.path||"")===fp||(f.path||"").startsWith(fp+"/"))).length;
+    html+=`<div class="folderCard" data-folder="${folder}" data-fpath="${fp}">
       <div class="folderIco">📁</div>
       <div class="folderInfo"><div class="folderName">${folder}</div><div class="folderMeta">${count}টি ফাইল</div></div>
       <div style="display:flex;gap:5px">
@@ -730,283 +622,233 @@ function renderView() {
       </div>
     </div>`;
   });
-  html += directFiles.map(f => fileCardHTML(f, false)).join("");
-  list.innerHTML = html;
+  html+=directFiles.map(f=>fileCardHTML(f,false)).join("");
+  list.innerHTML=html;
   attachEvents();
 }
 
-function sortFiles(arr) {
-  return [...arr].sort((a, b) => currentSort === "new" ? (b.ts||0) - (a.ts||0) : (a.ts||0) - (b.ts||0));
-}
+function sortFiles(arr){return[...arr].sort((a,b)=>currentSort==="new"?(b.ts||0)-(a.ts||0):(a.ts||0)-(b.ts||0));}
 
-function fileCardHTML(f, showPath) {
-  return `<div class="fileCard" data-id="${f.id}">
+function fileCardHTML(f,showPath){
+  const isPDF=/\.pdf$/i.test(f.name);
+  return`<div class="fileCard" data-id="${f.id}">
     <input type="checkbox" class="chk fileChk" data-id="${f.id}"/>
     <div class="fileIco">${getIcon(f.name)}</div>
     <div class="fileInfo">
       <div class="fileName">${f.name}</div>
-      <div class="fileMeta">${fmtSize(f.size||0)} · ${f.date}${showPath && f.path ? ' · 📁 ' + f.path : ''}</div>
+      <div class="fileMeta">${fmtSize(f.size)} · ${f.date}${showPath&&f.path?' · 📁 '+f.path:''}</div>
     </div>
     <div class="fileBtns">
       <button class="iconBtn previewIco previewBtn" data-id="${f.id}">👁️</button>
-      <button class="iconBtn dlIco dlBtn" data-id="${f.id}">⬇️</button>
+      <button class="iconBtn dlIco dlBtn" data-id="${f.id}" data-url="${f.url}" data-name="${f.name}">⬇️</button>
       <button class="iconBtn renameIco fileRename" data-id="${f.id}" data-name="${f.name}">✏️</button>
       <button class="iconBtn delIco moveToRecycle" data-id="${f.id}">🗑️</button>
     </div>
   </div>`;
 }
 
-function attachEvents() {
-  document.querySelectorAll(".folderCard").forEach(el => {
-    el.addEventListener("click", e => {
-      if (e.target.closest(".folderRename") || e.target.closest(".folderDel")) return;
-      currentPath = [...currentPath, el.dataset.folder]; history.pushState({}, "", ""); renderView();
+function attachEvents(){
+  document.querySelectorAll(".folderCard").forEach(el=>{
+    el.addEventListener("click",e=>{
+      if(e.target.closest(".folderRename")||e.target.closest(".folderDel"))return;
+      currentPath=[...currentPath,el.dataset.folder];
+      history.pushState({},"","");renderView();
     });
   });
-  document.querySelectorAll(".folderRename").forEach(el => {
-    el.addEventListener("click", e => { e.stopPropagation(); openRename("folder", null, el.dataset.folder, el.dataset.fpath); });
+  document.querySelectorAll(".folderRename").forEach(el=>{
+    el.addEventListener("click",e=>{e.stopPropagation();openRename("folder",null,el.dataset.folder,el.dataset.fpath);});
   });
-  document.querySelectorAll(".folderDel").forEach(el => {
-    el.addEventListener("click", e => { e.stopPropagation(); delFolder(el.dataset.fpath); });
+  document.querySelectorAll(".folderDel").forEach(el=>{
+    el.addEventListener("click",e=>{e.stopPropagation();delFolder(el.dataset.fpath);});
   });
-  document.querySelectorAll(".previewBtn").forEach(el => el.addEventListener("click", () => preview(el.dataset.id)));
-  document.querySelectorAll(".dlBtn").forEach(el => el.addEventListener("click", () => downloadFile(el.dataset.id)));
-  document.querySelectorAll(".fileRename").forEach(el => {
-    el.addEventListener("click", () => openRename("file", el.dataset.id, el.dataset.name, ""));
+  document.querySelectorAll(".previewBtn").forEach(el=>el.addEventListener("click",()=>preview(el.dataset.id)));
+
+  // ✅ FIX: blob download for all files (PDF + others)
+  document.querySelectorAll(".dlBtn").forEach(el=>{
+    el.addEventListener("click",()=>downloadFile(el.dataset.url, el.dataset.name));
   });
-  document.querySelectorAll(".moveToRecycle").forEach(el => {
-    el.addEventListener("click", () => moveToRecycle(el.dataset.id));
+
+  document.querySelectorAll(".fileRename").forEach(el=>{
+    el.addEventListener("click",()=>openRename("file",el.dataset.id,el.dataset.name,""));
   });
-  document.querySelectorAll(".fileChk").forEach(el => {
-    el.addEventListener("change", e => { e.target.closest(".fileCard").classList.toggle("selected", e.target.checked); });
+  document.querySelectorAll(".moveToRecycle").forEach(el=>{
+    el.addEventListener("click",()=>moveToRecycle(el.dataset.id));
+  });
+  document.querySelectorAll(".fileChk").forEach(el=>{
+    el.addEventListener("change",e=>{e.target.closest(".fileCard").classList.toggle("selected",e.target.checked);});
   });
 }
 
-document.getElementById("backBtn").addEventListener("click", () => { if (currentPath.length > 0) { currentPath.pop(); renderView(); } });
-
-// ══════════════════════════════════════════════
-// DOWNLOAD & PREVIEW
-// ══════════════════════════════════════════════
-async function getFileUrl(id) {
-  const f = allFiles.find(x => x.id === id); if (!f) return null;
-  if (f.url && !f.fileId) return f.url;
-  if (f.fileId) return await getTgFileUrl(f.fileId);
+// Telegram file URL বানানো
+async function getTgUrl(fileId){
+  const res=await fetch(`${TG_API}/getFile?file_id=${fileId}`);
+  const data=await res.json();
+  if(data.ok) return `https://api.telegram.org/file/bot${TG_TOKEN}/${data.result.file_path}`;
   return null;
 }
 
-async function downloadFile(id) {
-  showToast("Download শুরু হচ্ছে...", "info");
-  const f = allFiles.find(x => x.id === id); if (!f) return;
-  const url = await getFileUrl(id);
-  if (!url) { showToast("Download failed", "err"); return; }
-  try {
-    const res  = await fetch(url);
-    if (!res.ok) throw new Error();
-    const blob = await res.blob();
-    const a    = document.createElement("a");
-    a.href     = URL.createObjectURL(blob);
-    a.download = f.name;
-    document.body.appendChild(a); a.click();
-    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+function isTg(url){return url&&url.startsWith("tg://");}
+function getTgFileId(url){return url.replace("tg://","");}
+
+function fixCloudinaryUrl(url){
+  return url.replace('/image/upload/','/raw/upload/').replace('/video/upload/','/raw/upload/');
+}
+
+async function downloadFile(url, name){
+  showToast("Download শুরু হচ্ছে...","info");
+  let dlUrl=url;
+  if(isTg(url)){
+    dlUrl=await getTgUrl(getTgFileId(url));
+    if(!dlUrl){showToast("Download failed","err");return;}
+  }
+  try{
+    const res=await fetch(dlUrl);
+    if(!res.ok)throw new Error();
+    const blob=await res.blob();
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(blob);
+    a.download=name;
+    document.body.appendChild(a);a.click();
+    setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);
     showToast("Download সম্পন্ন ✅");
-  } catch {
-    window.open(url, "_blank");
-    showToast("নতুন tab এ খুলছে", "info");
+  }catch(e){
+    window.open(dlUrl,"_blank");
+    showToast("নতুন tab এ খুলছে","info");
   }
 }
 
-async function preview(id) {
-  const f = allFiles.find(x => x.id === id); if (!f) return;
-  const ext = f.name.split(".").pop().toLowerCase();
-  document.getElementById("previewContent").innerHTML = `<div style="text-align:center;padding:40px;color:rgba(255,255,255,0.5)"><div style="font-size:40px">⏳</div><p style="margin-top:12px">লোড হচ্ছে...</p></div>`;
-  document.getElementById("previewOverlay").classList.remove("hidden");
-
-  const url = await getFileUrl(id);
-  if (!url) { document.getElementById("previewContent").innerHTML = `<p style="padding:20px;text-align:center">লোড করা যায়নি</p>`; return; }
-
-  let html = "";
-  if (["jpg","jpeg","png","gif","webp","svg"].includes(ext)) {
-    html = `<img src="${url}" style="max-width:80vw;max-height:80vh;border-radius:10px"/>`;
-  } else if (["mp4","webm","mov"].includes(ext)) {
-    html = `<video src="${url}" controls style="max-width:80vw;max-height:75vh;border-radius:10px"></video>`;
-  } else if (["mp3","wav","ogg","aac","m4a"].includes(ext)) {
-    html = `<p style="margin-bottom:12px;font-weight:600">🎵 ${f.name}</p><audio src="${url}" controls style="width:280px"></audio>`;
-  } else if (ext === "pdf") {
-    html = `
-      <div style="margin-bottom:12px;font-weight:700;font-size:15px">📕 ${f.name}</div>
-      <div class="pdf-actions">
-        <button class="pdf-btn pdf-dl" onclick="downloadFile('${id}')">⬇️ Download</button>
-        <button class="pdf-btn pdf-open" onclick="window.open('${url}','_blank')">🔗 খুলুন</button>
-      </div>
-      <div style="text-align:center;padding:30px;color:rgba(255,255,255,0.4)">
-        <div style="font-size:60px">📕</div>
-        <p style="margin-top:10px;font-size:13px">${f.name}</p>
-      </div>`;
-  } else {
-    html = `<div style="padding:30px;text-align:center">
-      <div style="font-size:50px">${getIcon(f.name)}</div>
-      <p style="margin:12px 0;font-weight:600">${f.name}</p>
-      <div class="pdf-actions" style="justify-content:center">
-        <button class="pdf-btn pdf-dl" onclick="downloadFile('${id}')">⬇️ Download</button>
-        <button class="pdf-btn pdf-open" onclick="window.open('${url}','_blank')">🔗 খুলুন</button>
-      </div>
-    </div>`;
-  }
-  document.getElementById("previewContent").innerHTML = html;
-}
-
-document.getElementById("previewClose").addEventListener("click", () => {
-  document.getElementById("previewOverlay").classList.add("hidden");
-  document.getElementById("previewContent").innerHTML = "";
+document.getElementById("backBtn").addEventListener("click",()=>{
+  if(currentPath.length>0){currentPath.pop();renderView();}
 });
 
-// ══════════════════════════════════════════════
-// FOLDER
-// ══════════════════════════════════════════════
-document.getElementById("newFolderBtn").addEventListener("click", e => {
-  e.stopPropagation();
-  document.getElementById("newFolderInput").value = "";
-  document.getElementById("newFolderModal").classList.remove("hidden");
-  setTimeout(() => document.getElementById("newFolderInput").focus(), 100);
-});
-document.getElementById("cancelFolderBtn").addEventListener("click", () => document.getElementById("newFolderModal").classList.add("hidden"));
-document.getElementById("createFolderBtn").addEventListener("click", createFolder);
-document.getElementById("newFolderInput").addEventListener("keydown", e => { if (e.key === "Enter") createFolder(); });
-
-async function createFolder() {
-  const name = document.getElementById("newFolderInput").value.trim();
-  if (!name) { showToast("Folder এর নাম দিন", "err"); return; }
-  const cur        = currentPath.join("/");
-  const folderPath = cur ? cur + "/" + name : name;
-  allFiles.push({ id: "folder_" + Date.now(), name: ".folder", path: folderPath, size: 0, date: new Date().toLocaleDateString("bn-IN"), ts: Date.now(), isPlaceholder: true });
-  await saveFilesAndPin();
-  document.getElementById("newFolderModal").classList.add("hidden");
-  renderView(); showToast("Folder তৈরি হয়েছে ✅");
+async function moveToRecycle(id){
+  const f=allFiles.find(x=>x.id===id);if(!f)return;
+  f.deletedAt=new Date().toLocaleDateString("bn-IN");
+  recycleBin.unshift(f);
+  allFiles=allFiles.filter(x=>x.id!==id);
+  saveCache();
+  document.getElementById("stats").textContent=allFiles.filter(f=>!f.isPlaceholder).length+" ফাইল";
+  updateDisk();renderView();updateBinCount();
+  showToast("Recycle Bin এ গেছে 🗑️","info");
+  await saveFiles();
 }
 
-// ══════════════════════════════════════════════
-// RENAME
-// ══════════════════════════════════════════════
-document.getElementById("cancelRenameBtn").addEventListener("click", () => document.getElementById("renameModal").classList.add("hidden"));
-document.getElementById("confirmRenameBtn").addEventListener("click", doRename);
-document.getElementById("renameInput").addEventListener("keydown", e => { if (e.key === "Enter") doRename(); });
-
-function openRename(type, id, oldName, oldPath) {
-  renameTarget = { type, id, oldName, oldPath };
-  document.getElementById("renameInput").value = oldName;
-  document.getElementById("renameModal").classList.remove("hidden");
-  setTimeout(() => document.getElementById("renameInput").focus(), 100);
+async function delFolder(path){
+  if(!confirm("এই folder Recycle Bin এ যাবে। নিশ্চিত?"))return;
+  const toMove=allFiles.filter(f=>(f.path||"")===path||(f.path||"").startsWith(path+"/"));
+  toMove.forEach(f=>{f.deletedAt=new Date().toLocaleDateString("bn-IN");recycleBin.unshift(f);});
+  allFiles=allFiles.filter(f=>!((f.path||"")===path||(f.path||"").startsWith(path+"/")));
+  saveCache();updateDisk();renderView();updateBinCount();
+  showToast("Folder Recycle Bin এ গেছে","info");
+  await saveFiles();
 }
 
-async function doRename() {
-  const newName = document.getElementById("renameInput").value.trim();
-  if (!newName || !renameTarget) { showToast("নাম দিন", "err"); return; }
-  if (renameTarget.type === "file") {
-    const f = allFiles.find(x => x.id === renameTarget.id); if (f) f.name = newName;
-  } else {
-    const oldFP = renameTarget.oldPath;
-    const parts = oldFP.split("/"); parts[parts.length - 1] = newName;
-    const newFP = parts.join("/");
-    allFiles.forEach(f => {
-      if ((f.path||"") === oldFP) f.path = newFP;
-      else if ((f.path||"").startsWith(oldFP + "/")) f.path = newFP + f.path.slice(oldFP.length);
-    });
-  }
-  await saveFilesAndPin();
-  document.getElementById("renameModal").classList.add("hidden");
-  renderView(); showToast("Rename হয়েছে ✅");
-}
-
-// ══════════════════════════════════════════════
-// RECYCLE BIN
-// ══════════════════════════════════════════════
-async function moveToRecycle(id) {
-  const f = allFiles.find(x => x.id === id); if (!f) return;
-  f.deletedAt = new Date().toLocaleDateString("bn-IN");
-  recycleBin.unshift(f); allFiles = allFiles.filter(x => x.id !== id);
-  saveLocalCache(); updateDisk(); renderView(); updateBinCount();
-  showToast("Recycle Bin এ গেছে 🗑️", "info");
-  await saveFilesAndPin();
-}
-
-async function delFolder(path) {
-  if (!confirm("এই folder Recycle Bin এ যাবে। নিশ্চিত?")) return;
-  const toMove = allFiles.filter(f => (f.path||"") === path || (f.path||"").startsWith(path + "/"));
-  toMove.forEach(f => { f.deletedAt = new Date().toLocaleDateString("bn-IN"); recycleBin.unshift(f); });
-  allFiles = allFiles.filter(f => !((f.path||"") === path || (f.path||"").startsWith(path + "/")));
-  saveLocalCache(); updateDisk(); renderView(); updateBinCount();
-  showToast("Folder Recycle Bin এ গেছে", "info");
-  await saveFilesAndPin();
-}
-
-function renderRecycle() {
-  const list = document.getElementById("recycleList");
-  if (!recycleBin.length) { list.innerHTML = `<div class="empty"><div>🗑️</div><p>Recycle Bin খালি</p></div>`; return; }
-  list.innerHTML = recycleBin.map(f => `
+function renderRecycle(){
+  const list=document.getElementById("recycleList");
+  if(!recycleBin.length){list.innerHTML=`<div class="empty"><div>🗑️</div><p>Recycle Bin খালি</p></div>`;return;}
+  list.innerHTML=recycleBin.map(f=>`
     <div class="fileCard">
+      <input type="checkbox" class="chk recycleChk" data-id="${f.id}"/>
       <div class="fileIco">${getIcon(f.name)}</div>
-      <div class="fileInfo"><div class="fileName">${f.name}</div><div class="fileMeta">${fmtSize(f.size||0)} · মুছেছে: ${f.deletedAt||""}</div></div>
+      <div class="fileInfo"><div class="fileName">${f.name}</div><div class="fileMeta">${fmtSize(f.size)} · মুছেছে: ${f.deletedAt||""}</div></div>
       <div class="fileBtns">
         <button class="iconBtn restoreIco restoreBtn" data-id="${f.id}">♻️</button>
         <button class="iconBtn delIco permDel" data-id="${f.id}">❌</button>
       </div>
     </div>`).join("");
-  document.querySelectorAll(".restoreBtn").forEach(el => el.addEventListener("click", () => restoreFile(el.dataset.id)));
-  document.querySelectorAll(".permDel").forEach(el => el.addEventListener("click", () => permDelete(el.dataset.id)));
+  document.querySelectorAll(".restoreBtn").forEach(el=>el.addEventListener("click",()=>restoreFile(el.dataset.id)));
+  document.querySelectorAll(".permDel").forEach(el=>el.addEventListener("click",()=>permDelete(el.dataset.id)));
 }
 
-async function restoreFile(id) {
-  const f = recycleBin.find(x => x.id === id); if (!f) return;
-  delete f.deletedAt; allFiles.unshift(f); recycleBin = recycleBin.filter(x => x.id !== id);
-  saveLocalCache(); updateDisk(); renderRecycle(); updateBinCount();
+async function restoreFile(id){
+  const f=recycleBin.find(x=>x.id===id);if(!f)return;
+  delete f.deletedAt;allFiles.unshift(f);recycleBin=recycleBin.filter(x=>x.id!==id);
+  saveCache();updateDisk();renderRecycle();updateBinCount();
+  document.getElementById("stats").textContent=allFiles.filter(f=>!f.isPlaceholder).length+" ফাইল";
   showToast("ফাইল পুনরুদ্ধার হয়েছে ♻️");
-  await saveFilesAndPin();
+  await saveFiles();
 }
 
-async function permDelete(id) {
-  recycleBin = recycleBin.filter(x => x.id !== id);
-  saveLocalCache(); renderRecycle(); updateBinCount();
-  showToast("চিরতরে মুছে গেছে ❌", "err");
-  await saveFilesAndPin();
+async function permDelete(id){
+  recycleBin=recycleBin.filter(x=>x.id!==id);
+  saveCache();renderRecycle();updateBinCount();
+  showToast("চিরতরে মুছে গেছে ❌","err");
+  await saveFiles();
 }
 
-document.getElementById("emptyBinBtn").addEventListener("click", async () => {
-  if (!recycleBin.length) { showToast("Bin ইতিমধ্যে খালি", "info"); return; }
-  if (!confirm("সব ফাইল চিরতরে মুছে যাবে। নিশ্চিত?")) return;
-  recycleBin = []; saveLocalCache(); renderRecycle(); updateBinCount();
-  showToast("Recycle Bin খালি হয়েছে 🗑️", "err");
-  await saveFilesAndPin();
+document.getElementById("emptyBinBtn").addEventListener("click",async()=>{
+  if(!recycleBin.length){showToast("Bin ইতিমধ্যে খালি","info");return;}
+  if(!confirm("সব ফাইল চিরতরে মুছে যাবে। নিশ্চিত?"))return;
+  recycleBin=[];saveCache();renderRecycle();updateBinCount();
+  showToast("Recycle Bin খালি হয়েছে 🗑️","err");
+  await saveFiles();
 });
 
-// ══════════════════════════════════════════════
-// UTILS
-// ══════════════════════════════════════════════
-function getIcon(n) {
-  const e = (n||"").split(".").pop().toLowerCase();
-  if (["jpg","jpeg","png","gif","webp","svg"].includes(e)) return "🖼️";
-  if (["mp4","mkv","avi","mov","webm"].includes(e)) return "🎬";
-  if (["mp3","wav","ogg","aac","m4a"].includes(e)) return "🎵";
-  if (e === "pdf") return "📕";
-  if (["doc","docx"].includes(e)) return "📝";
-  if (["xls","xlsx","csv"].includes(e)) return "📊";
-  if (["zip","rar","7z","tar"].includes(e)) return "🗜️";
-  if (["txt","md"].includes(e)) return "📄";
-  return "📎";
+// ✅ FIX: PDF preview — Google Docs viewer + direct open button
+function preview(id){
+  const f=allFiles.find(x=>x.id===id);if(!f)return;
+  const ext=f.name.split(".").pop().toLowerCase();
+  let html="";
+
+  if(["jpg","jpeg","png","gif","webp","svg"].includes(ext)){
+    html=`<img src="${f.url}" style="max-width:80vw;max-height:80vh;border-radius:10px"/>`;
+  }else if(["mp4","webm","mov"].includes(ext)){
+    html=`<video src="${f.url}" controls style="max-width:80vw;max-height:75vh;border-radius:10px"></video>`;
+  }else if(["mp3","wav","ogg","aac"].includes(ext)){
+    html=`<p style="margin-bottom:12px;font-weight:600;font-size:15px">🎵 ${f.name}</p><audio src="${f.url}" controls style="width:280px"></audio>`;
+  }else if(ext==="pdf"){
+    const fileId=isTg(f.url)?getTgFileId(f.url):null;
+    html=`
+      <div style="margin-bottom:12px;font-weight:700;font-size:15px">📕 ${f.name}</div>
+      <div class="pdf-actions">
+        <button class="pdf-btn pdf-dl" onclick="downloadFile('${f.url}','${f.name}')">⬇️ Download করুন</button>
+        ${fileId?`<button class="pdf-btn pdf-open" onclick="openTgPdf('${fileId}')">🔗 খুলুন</button>`:`<button class="pdf-btn pdf-open" onclick="window.open('${f.url}','_blank')">🔗 খুলুন</button>`}
+      </div>
+      <div style="margin-top:16px;text-align:center;padding:40px;color:rgba(255,255,255,0.4)">
+        <div style="font-size:60px">📕</div>
+        <p style="margin-top:12px;font-size:14px">${f.name}</p>
+        <p style="font-size:12px;margin-top:6px">Download করুন অথবা খুলুন</p>
+      </div>`;
+  }else{
+    html=`<p style="padding:20px;text-align:center;line-height:1.8">
+      <span style="font-size:40px">📎</span><br><br>
+      <b>${f.name}</b><br><br>
+      <button class="pdf-btn pdf-open" onclick="window.open('${f.url}','_blank')">🔗 নতুন Tab এ খুলুন</button>
+      &nbsp;
+      <button class="pdf-btn pdf-dl" onclick="downloadFile('${f.url}','${f.name}')">⬇️ Download</button>
+    </p>`;
+  }
+
+  document.getElementById("previewContent").innerHTML=html;
+  document.getElementById("previewOverlay").classList.remove("hidden");
 }
-function fmtSize(b) {
-  if (!b) return "0 B";
-  if (b < 1024) return b + " B";
-  if (b < 1048576) return (b/1024).toFixed(1) + " KB";
-  if (b < 1073741824) return (b/1048576).toFixed(1) + " MB";
-  return (b/1073741824).toFixed(2) + " GB";
+
+async function openTgPdf(fileId){
+  showToast("লোড হচ্ছে...","info");
+  const url=await getTgUrl(fileId);
+  if(url) window.open(url,"_blank");
+  else showToast("খোলা যায়নি","err");
 }
-function showToast(msg, type = "ok") {
-  const t = document.createElement("div");
-  t.className = `toast ${type}`;
-  t.textContent = msg;
-  document.body.appendChild(t);
-  setTimeout(() => t.remove(), 2800);
+
+document.getElementById("previewClose").addEventListener("click",()=>{
+  document.getElementById("previewOverlay").classList.add("hidden");
+  document.getElementById("previewContent").innerHTML="";
+});
+
+function getIcon(n){
+  const e=n.split(".").pop().toLowerCase();
+  if(["jpg","jpeg","png","gif","webp","svg"].includes(e))return"🖼️";
+  if(["mp4","mkv","avi","mov","webm"].includes(e))return"🎬";
+  if(["mp3","wav","ogg","aac"].includes(e))return"🎵";
+  if(e==="pdf")return"📕";
+  if(["doc","docx"].includes(e))return"📝";
+  if(["xls","xlsx","csv"].includes(e))return"📊";
+  if(["zip","rar","7z","tar"].includes(e))return"🗜️";
+  if(["txt","md"].includes(e))return"📄";
+  return"📎";
 }
+function fmtSize(b){if(b<1024)return b+" B";if(b<1048576)return(b/1024).toFixed(1)+" KB";if(b<1073741824)return(b/1048576).toFixed(1)+" MB";return(b/1073741824).toFixed(2)+" GB";}
+function showToast(msg,type="ok"){const t=document.createElement("div");t.className=`toast ${type}`;t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2800);}
 </script>
 </body>
 </html>
