@@ -1,261 +1,177 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Suman's Cloud ☁️</title>
-    <style>
-        :root { --primary: #667eea; --secondary: #764ba2; --bg: #0f172a; }
-        * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI', sans-serif; }
-        body { background: var(--bg); color: #fff; min-height: 100vh; overflow-x: hidden; }
-        .hidden { display: none !important; }
-        
-        /* LOGIN UI */
-        #loginPage { height: 100vh; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle, #1e293b 0%, #0f172a 100%); }
-        .loginBox { background: rgba(255,255,255,0.05); padding: 40px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.1); text-align: center; width: 340px; backdrop-filter: blur(10px); }
-        
-        /* APP UI */
-        #appPage { max-width: 800px; margin: 0 auto; padding: 20px; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .storage-card { background: linear-gradient(135deg, rgba(102,126,234,0.1), rgba(118,75,162,0.1)); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 20px; margin-bottom: 20px; text-align: center; }
-        
-        .upload-section { border: 2px dashed rgba(255,255,255,0.2); border-radius: 16px; padding: 30px; text-align: center; margin-bottom: 20px; }
-        .btn { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; border: none; padding: 12px 24px; border-radius: 12px; cursor: pointer; font-weight: 600; width: 100%; transition: 0.3s; }
-        .btn:active { transform: scale(0.98); }
-
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
-        .tab { flex: 1; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 10px; cursor: pointer; text-align: center; border: 1px solid transparent; }
-        .tab.active { background: var(--primary); border-color: var(--primary); }
-
-        .file-list { display: flex; flex-direction: column; gap: 10px; }
-        .file-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); padding: 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; }
-        .file-info { display: flex; flex-direction: column; overflow: hidden; }
-        .file-name { font-size: 14px; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
-        .file-meta { font-size: 11px; color: #94a3b8; margin-top: 4px; }
-        
-        .del-btn { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); padding: 6px 10px; border-radius: 8px; cursor: pointer; }
-        
-        #progress { margin-top: 15px; background: #1e293b; border-radius: 10px; height: 8px; overflow: hidden; display: none; }
-        #progressFill { height: 100%; width: 0%; background: var(--primary); transition: 0.3s; }
-
-        .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); padding: 12px 24px; border-radius: 10px; z-index: 1000; display: none; background: #10b981; }
-    </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Suman's Cloud ☁️</title>
+<style>
+/* আপনার আগের সেই ডিজাইন যা আপনি পছন্দ করেছিলেন */
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
+body{min-height:100vh;background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460);color:#fff}
+.hidden{display:none!important}
+#loginPage{min-height:100vh;display:flex;align-items:center;justify-content:center}
+.loginBox{background:rgba(255,255,255,0.07);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.15);border-radius:24px;padding:40px 36px;width:320px;text-align:center}
+.ico{font-size:52px;margin-bottom:8px}
+.loginBox h2{font-size:21px;font-weight:700;margin-bottom:4px}
+.ipt{width:100%;padding:11px 16px;border-radius:12px;border:1.5px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:#fff;outline:none;margin-bottom:8px}
+.btn{width:100%;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;font-weight:700;cursor:pointer}
+#appPage{max-width:780px;margin:0 auto;padding:16px}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.storageBox{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:14px 18px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+.uploadArea{border:2px dashed rgba(255,255,255,0.2);border-radius:18px;padding:20px;text-align:center;background:rgba(255,255,255,0.04);margin-bottom:14px}
+.fileCard{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.fileInfo{flex:1;min-width:0}
+.fileName{font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.progressWrap{margin-top:12px;display:none}
+.progressBar{height:6px;background:rgba(255,255,255,0.1);border-radius:10px;overflow:hidden}
+.progressFill{height:100%;background:#667eea;width:0%}
+.tabs{display:flex;gap:8px;margin-bottom:14px}
+.tab{padding:8px 16px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.6);cursor:pointer}
+.tab.active{background:rgba(102,126,234,0.3);color:#fff;border-color:#667eea}
+</style>
 </head>
 <body>
 
 <div id="loginPage">
     <div class="loginBox">
-        <h2 style="margin-bottom: 20px;">Suman's Cloud ☁️</h2>
-        <input type="password" id="pwInput" class="btn" style="background: rgba(255,255,255,0.1); margin-bottom: 10px; text-align: center;" placeholder="Password">
+        <div class="ico">☁️</div>
+        <h2>Suman's Cloud</h2>
+        <input type="password" class="ipt" id="pwInput" placeholder="Password..."/>
         <button class="btn" onclick="login()">প্রবেশ করুন</button>
     </div>
 </div>
 
 <div id="appPage" class="hidden">
     <div class="header">
-        <h3>☁️ Suman's Cloud</h3>
-        <button onclick="syncData()" style="background:none; border:none; color:var(--primary); cursor:pointer;">🔄 Sync Data</button>
+        <h1>☁️ Suman's Cloud</h1>
+        <button onclick="location.reload()" style="background:none; border:none; color:#a5b4fc; cursor:pointer;">🔄 Sync</button>
     </div>
 
-    <div class="storage-card">
-        <div id="usedSize" style="font-size: 24px; font-weight: 700;">0 B</div>
-        <div id="stats" style="font-size: 12px; color: #94a3b8;">০ টি ফাইল</div>
+    <div class="storageBox">
+        <div>মোট ফাইল: <b id="stats">0</b> | সাইজ: <b id="usedSize">0 B</b></div>
+        <div style="color:#29b6f6; font-weight:700">Unlimited</div>
     </div>
 
     <div class="tabs">
-        <div class="tab active" id="tabFiles" onclick="switchTab('files')">📁 Files</div>
-        <div class="tab" id="tabRecycle" onclick="switchTab('recycle')">🗑️ Recycle</div>
+        <button class="tab active" id="tabFiles" onclick="switchTab('files')">📁 Files</button>
+        <button class="tab" id="tabRecycle" onclick="switchTab('recycle')">🗑️ Recycle</button>
     </div>
 
     <div id="filesView">
-        <div class="upload-section">
-            <input type="file" id="fileInput" multiple hidden onchange="uploadFiles(this)">
-            <button class="btn" onclick="document.getElementById('fileInput').click()">📤 ফাইল আপলোড করুন</button>
-            <div id="progress"><div id="progressFill"></div></div>
-            <p id="progTxt" style="font-size: 10px; margin-top:5px; display:none;"></p>
+        <div class="uploadArea">
+            <input type="file" id="fileInput" multiple hidden onchange="uploadFiles(this)"/>
+            <button onclick="document.getElementById('fileInput').click()" style="background:rgba(255,255,255,0.1); border:1px solid #555; color:#fff; padding:8px 15px; border-radius:10px; cursor:pointer;">📤 ফাইল আপলোড করুন</button>
+            <div class="progressWrap" id="pw">
+                <div class="progressBar"><div class="progressFill" id="pf"></div></div>
+            </div>
         </div>
-        <div class="file-list" id="mainList"></div>
+        <div id="mainList"></div>
     </div>
 
     <div id="recycleView" class="hidden">
-        <div class="file-list" id="recycleList"></div>
+        <div id="recycleList"></div>
     </div>
 </div>
 
-<div id="toast" class="toast"></div>
-
 <script>
-    const BOT_TOKEN = "8703347824:AAHT2yKhqV5fp2j70H3bl9gQORqd1p1wOJ4";
-    const CHAT_ID = "-1003981955339";
-    const TAG = "SC_DATA_V3:";
-    
-    let files = [], recycle = [], currentMsgId = null;
+const BOT_TOKEN = "8703347824:AAHT2yKhqV5fp2j70H3bl9gQORqd1p1wOJ4";
+const CHAT_ID = "-1003981955339";
+const TAG = "SC_DATA_V3:";
 
-    function login() {
-        if(document.getElementById("pwInput").value === "Suman400@") {
-            document.getElementById("loginPage").classList.add("hidden");
-            document.getElementById("appPage").classList.remove("hidden");
-            syncData();
-        } else {
-            alert("ভুল পাসওয়ার্ড!");
-        }
-    }
+let files = [], recycle = [], currentMsgId = null;
 
-    // --- পাওয়ারফুল সিঙ্ক লজিক ---
-    async function syncData() {
-        showToast("ডাটা সিঙ্ক হচ্ছে...", "#3b82f6");
-        try {
-            // getUpdates এর পরিবর্তে আমরা একটি নির্দিষ্ট মেসেজ আইডি দিয়ে ডাটা খোঁজার চেষ্টা করবো
-            // অথবা শেষ ১০০টি আপডেট স্ক্যান করবো
-            const r = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getUpdates?limit=100&offset=-100`);
-            const d = await r.json();
-            
-            if(d.ok && d.result.length > 0) {
-                const updates = d.result.reverse();
-                let found = false;
-                for(let u of updates) {
-                    const msg = u.channel_post || u.message;
-                    if(msg && msg.text && msg.text.startsWith(TAG)) {
-                        const data = JSON.parse(msg.text.replace(TAG, ""));
-                        files = data.files || [];
-                        recycle = data.recycle || [];
-                        currentMsgId = msg.message_id;
-                        found = true;
-                        break;
-                    }
-                }
-                if(found) {
-                    render();
-                    showToast("ডাটা আপডেট করা হয়েছে ✅");
-                } else {
-                    showToast("ডাটা খুঁজে পাওয়া যায়নি। নতুন আপলোড করুন।", "#ef4444");
+function login() {
+    if(document.getElementById("pwInput").value === "Suman400@") {
+        document.getElementById("loginPage").classList.add("hidden");
+        document.getElementById("appPage").classList.remove("hidden");
+        syncData();
+    } else { alert("ভুল পাসওয়ার্ড!"); }
+}
+
+async function syncData() {
+    try {
+        // অন্য ফোন থেকে ডাটা দেখার জন্য আমরা লেটেস্ট আপডেট চেক করছি
+        const r = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getUpdates?offset=-100&limit=100`);
+        const d = await r.json();
+        if(d.ok && d.result.length > 0) {
+            const updates = d.result.reverse();
+            for(let u of updates) {
+                const msg = u.channel_post || u.message;
+                if(msg && msg.text && msg.text.startsWith(TAG)) {
+                    const data = JSON.parse(msg.text.replace(TAG, ""));
+                    files = data.files || [];
+                    recycle = data.recycle || [];
+                    currentMsgId = msg.message_id;
+                    break;
                 }
             }
-        } catch(e) {
-            showToast("সিঙ্ক করতে সমস্যা হয়েছে", "#ef4444");
         }
-    }
-
-    async function saveData() {
-        const text = TAG + JSON.stringify({ files, recycle });
-        const r = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ chat_id: CHAT_ID, text: text })
-        });
-        const res = await r.json();
-        if(res.ok) {
-            // পুরনো ডাটা মেসেজ ডিলিট করে চ্যানেল পরিষ্কার রাখা
-            if(currentMsgId) {
-                fetch(`https://api.telegram.org/bot${BOT_TOKEN}/deleteMessage?chat_id=${CHAT_ID}&message_id=${currentMsgId}`);
-            }
-            currentMsgId = res.result.message_id;
-        }
-    }
-
-    async function uploadFiles(input) {
-        const upFiles = Array.from(input.files);
-        if(!upFiles.length) return;
-        
-        const prog = document.getElementById("progress");
-        const fill = document.getElementById("progressFill");
-        const txt = document.getElementById("progTxt");
-        prog.style.display = "block";
-        txt.style.display = "block";
-
-        for(let i=0; i<upFiles.length; i++) {
-            const f = upFiles[i];
-            const fd = new FormData();
-            fd.append("chat_id", CHAT_ID);
-            fd.append("document", f);
-
-            txt.innerText = `${i+1}/${upFiles.length} আপলোড হচ্ছে: ${f.name}`;
-            
-            try {
-                const r = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendDocument`, { method: 'POST', body: fd });
-                const d = await r.json();
-                if(d.ok) {
-                    files.unshift({
-                        id: Date.now() + i,
-                        name: f.name,
-                        size: f.size,
-                        fileId: d.result.document.file_id,
-                        date: new Date().toLocaleDateString('bn-IN')
-                    });
-                }
-            } catch(e) {}
-            
-            fill.style.width = Math.round(((i+1)/upFiles.length)*100) + "%";
-        }
-        
-        await saveData();
-        prog.style.display = "none";
-        txt.style.display = "none";
         render();
-        showToast("ফাইল সেভ করা হয়েছে!");
+    } catch(e) { console.error("সিঙ্ক সমস্যা"); }
+}
+
+async function saveData() {
+    const text = TAG + JSON.stringify({ files, recycle });
+    const r = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ chat_id: CHAT_ID, text: text })
+    });
+    const res = await r.json();
+    if(res.ok) {
+        if(currentMsgId) fetch(`https://api.telegram.org/bot${BOT_TOKEN}/deleteMessage?chat_id=${CHAT_ID}&message_id=${currentMsgId}`);
+        currentMsgId = res.result.message_id;
     }
+}
 
-    function render() {
-        const list = document.getElementById("mainList");
-        const recList = document.getElementById("recycleList");
-        
-        let totalSize = files.reduce((a, b) => a + b.size, 0);
-        document.getElementById("usedSize").innerText = formatBytes(totalSize);
-        document.getElementById("stats").innerText = files.length + " টি ফাইল আপলোড করা হয়েছে";
+async function uploadFiles(input) {
+    const upFiles = Array.from(input.files);
+    document.getElementById("pw").style.display = "block";
+    for(let i=0; i<upFiles.length; i++) {
+        const f = upFiles[i];
+        const fd = new FormData();
+        fd.append("chat_id", CHAT_ID);
+        fd.append("document", f);
+        const r = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendDocument`, { method: 'POST', body: fd });
+        const d = await r.json();
+        if(d.ok) {
+            files.unshift({ id: Date.now(), name: f.name, size: f.size, fileId: d.result.document.file_id, date: new Date().toLocaleDateString('bn-IN') });
+        }
+        document.getElementById("pf").style.width = ((i+1)/upFiles.length*100) + "%";
+    }
+    await saveData();
+    document.getElementById("pw").style.display = "none";
+    render();
+}
 
-        list.innerHTML = files.map(f => `
-            <div class="file-card">
-                <div class="file-info">
-                    <span class="file-name">${f.name}</span>
-                    <span class="file-meta">${formatBytes(f.size)} • ${f.date}</span>
-                </div>
-                <button class="del-btn" onclick="moveToRecycle(${f.id})">🗑️</button>
+function render() {
+    const list = document.getElementById("mainList");
+    document.getElementById("stats").innerText = files.length;
+    document.getElementById("usedSize").innerText = (files.reduce((a,b)=>a+b.size,0)/1048576).toFixed(2) + " MB";
+    list.innerHTML = files.map(f => `
+        <div class="fileCard">
+            <div class="fileInfo">
+                <div class="fileName">${f.name}</div>
+                <div style="font-size:10px; color:#aaa">${f.date}</div>
             </div>
-        `).join('') || '<p style="text-align:center; padding:20px; color:#444;">কোনো ফাইল নেই</p>';
+            <button onclick="delFile(${f.id})" style="background:none; border:none; color:#ff6b6b; cursor:pointer">🗑️</button>
+        </div>
+    `).join("");
+}
 
-        recList.innerHTML = recycle.map(f => `
-            <div class="file-card">
-                <div class="file-info"><span class="file-name">${f.name}</span></div>
-                <button class="del-btn" style="color:#10b981; border-color:#10b981;" onclick="restore(${f.id})">🔄 Restore</button>
-            </div>
-        `).join('') || '<p style="text-align:center; padding:20px; color:#444;">বিন খালি</p>';
-    }
+async function delFile(id) {
+    const idx = files.findIndex(f => f.id === id);
+    recycle.unshift(files.splice(idx, 1)[0]);
+    await saveData();
+    render();
+}
 
-    async function moveToRecycle(id) {
-        const idx = files.findIndex(f => f.id === id);
-        recycle.unshift(files.splice(idx, 1)[0]);
-        await saveData();
-        render();
-    }
-
-    async function restore(id) {
-        const idx = recycle.findIndex(f => f.id === id);
-        files.unshift(recycle.splice(idx, 1)[0]);
-        await saveData();
-        render();
-    }
-
-    function formatBytes(bytes) {
-        if (bytes === 0) return '0 B';
-        const k = 1024, sizes = ['B', 'KB', 'MB', 'GB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-    }
-
-    function switchTab(t) {
-        document.getElementById("filesView").classList.toggle("hidden", t !== 'files');
-        document.getElementById("recycleView").classList.toggle("hidden", t !== 'recycle');
-        document.getElementById("tabFiles").classList.toggle("active", t === 'files');
-        document.getElementById("tabRecycle").classList.toggle("active", t === 'recycle');
-    }
-
-    function showToast(m, color = "#10b981") {
-        const t = document.getElementById("toast");
-        t.innerText = m;
-        t.style.background = color;
-        t.style.display = "block";
-        setTimeout(() => t.style.display = "none", 3000);
-    }
+function switchTab(t) {
+    document.getElementById("filesView").classList.toggle("hidden", t !== 'files');
+    document.getElementById("recycleView").classList.toggle("hidden", t !== 'recycle');
+    document.getElementById("tabFiles").classList.toggle("active", t === 'files');
+    document.getElementById("tabRecycle").classList.toggle("active", t === 'recycle');
+}
 </script>
 </body>
 </html>
