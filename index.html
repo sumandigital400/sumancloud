@@ -95,7 +95,6 @@ body{min-height:100vh;background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460)
 .actBtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 .actBtn{padding:9px 16px;border-radius:10px;border:none;font-size:13px;font-weight:700;cursor:pointer}
 .actDl{background:rgba(81,207,102,0.2);border:1px solid rgba(81,207,102,0.4);color:#51cf66}
-.actOpen{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff}
 .toast{position:fixed;top:20px;right:20px;padding:11px 18px;border-radius:12px;font-weight:600;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,0.4);animation:fadeIn .3s;max-width:280px}
 .toast.ok{background:#51cf66;color:#fff}
 .toast.err{background:#ff6b6b;color:#fff}
@@ -237,7 +236,7 @@ const TG_TOKEN    = "8508841798:AAGlVhkBZLpH4jI7Mq5slIb-9FRkAkqJeVg";
 const TG_CHAT     = "-1003977401726";
 const TG          = `https://api.telegram.org/bot${TG_TOKEN}`;
 const DATA_TAG    = "SC_DATA_V3:";
-const FIXED_MSG_ID = "9"; 
+let dataMsgId     = "9"; // আপনার দেওয়া ফিক্সড মেসেজ আইডি
  
 // ── STATE ────────────────────────────────────────────────
 let PASS        = localStorage.getItem("suman_pw") || "Suman400@";
@@ -248,7 +247,6 @@ let sort        = "new";
 let filter      = "all";
 let activeTab   = "files";
 let renameTgt   = null;
-let dataMsgId   = FIXED_MSG_ID; 
 let inactTimer  = null;
 let dragFileId  = null;   
 let dragFolderPath = null; 
@@ -381,31 +379,30 @@ async function tgUrl(fileId) {
   return null;
 }
  
-// ── GLOBAL DEVICE SYNC SYSTEM ────────────────────────────
+// ── 100% WORKING GLOBAL CLOUD SYNC SYSTEM (PINNED BASED) ──
 async function loadData() {
+  // ১. অফলাইন ব্যাকআপ ক্যাশ থেকে ইনস্ট্যান্ট লোড হবে
   try {
     const c = JSON.parse(localStorage.getItem("sc_cache") || "{}");
     if(c.files) { files = c.files; recycle = c.recycle || []; render(); renderStats(); updateBinCount(); }
   } catch {}
  
+  // ২. অন্য ফোনের জন্য সরাসরি চ্যানেলের পিন করা মেসেজ থেকে লেটেস্ট ডেটা টানবে
   try {
-    const r = await fetch(`${TG}/getUpdates?limit=100&offset=-100`);
+    const r = await fetch(`${TG}/getChat?chat_id=${TG_CHAT}`);
     const d = await r.json();
-    if (d.ok) {
-      let found = null;
-      for (const u of d.result) {
-        const txt = u.channel_post?.text || u.message?.text || "";
-        if (txt.startsWith(DATA_TAG)) found = txt;
-      }
-      if (found) {
-        const rec = JSON.parse(found.slice(DATA_TAG.length));
+    if (d.ok && d.result.pinned_message) {
+      const txt = d.result.pinned_message.text || "";
+      if (txt.startsWith(DATA_TAG)) {
+        dataMsgId = String(d.result.pinned_message.message_id);
+        const rec = JSON.parse(txt.slice(DATA_TAG.length));
         files = rec.files || []; recycle = rec.recycle || [];
         localStorage.setItem("sc_cache", JSON.stringify({ files, recycle }));
         render(); renderStats(); updateBinCount();
       }
     }
   } catch { 
-    toast("সার্ভার সিঙ্ক হচ্ছে...", "info"); 
+    toast("ক্লাউড সিঙ্ক সমস্যা...", "err"); 
   }
 }
 
@@ -414,10 +411,15 @@ async function saveData() {
   const txt = DATA_TAG + JSON.stringify({ files, recycle });
   
   try {
+    // যেকোনো ডিভাইস থেকে এডিট করলে সরাসরি ওই মেসেজ আপডেট হবে
     await tg("editMessageText", { chat_id: TG_CHAT, message_id: parseInt(dataMsgId), text: txt });
   } catch {
+    // যদি পুরনো মেসেজ আইডি কোনো কারণে নষ্ট বা ডিলিট হয়, তবে নতুন মেসেজ তৈরি করে পিন করে দেবে
     const r = await tg("sendMessage", { chat_id: TG_CHAT, text: txt });
-    if (r.ok) { dataMsgId = String(r.result.message_id); }
+    if (r.ok) { 
+      dataMsgId = String(r.result.message_id); 
+      await tg("pinChatMessage", { chat_id: TG_CHAT, message_id: parseInt(dataMsgId), disable_notification: true });
+    }
   }
 }
  
