@@ -236,7 +236,7 @@ const TG_TOKEN    = "8508841798:AAGlVhkBZLpH4jI7Mq5slIb-9FRkAkqJeVg";
 const TG_CHAT     = "-1003977401726";
 const TG          = `https://api.telegram.org/bot${TG_TOKEN}`;
 const DATA_TAG    = "SC_DATA_V3:";
-let dataMsgId     = "9"; // আপনার দেওয়া ফিক্সড মেসেজ আইডি
+let dataMsgId     = "9"; 
  
 // ── STATE ────────────────────────────────────────────────
 let PASS        = localStorage.getItem("suman_pw") || "Suman400@";
@@ -254,7 +254,12 @@ let dragFolderPath = null;
 // ── BOOT ─────────────────────────────────────────────────
 window.addEventListener("load", () => {
   const s = sessionStorage.getItem(SESSION_KEY);
-  if (s && Date.now() - parseInt(s) < TIMEOUT) showApp();
+  // রিফ্রেশ করলে সেশন ভ্যালিড থাকলে সরাসরি অ্যাপ দেখাবে
+  if (s && Date.now() - parseInt(s) < TIMEOUT) {
+    showApp();
+  } else {
+    logout(true); // সেশন না থাকলে শক্তভাবে রিসেট করবে
+  }
 });
 window.addEventListener("popstate", () => {
   if (activeTab === "files" && path.length > 0) { path.pop(); render(); }
@@ -263,24 +268,37 @@ window.addEventListener("popstate", () => {
 // ── SESSION ──────────────────────────────────────────────
 function saveSession() { sessionStorage.setItem(SESSION_KEY, Date.now()); }
 function resetTimer() {
+  if (document.getElementById("appPage").classList.contains("hidden")) return;
   clearTimeout(inactTimer);
-  inactTimer = setTimeout(() => { toast("৩০ মিনিট inactive — logout", "err"); setTimeout(logout, 1500); }, TIMEOUT);
+  inactTimer = setTimeout(() => { toast("৩০ মিনিট inactive — logout", "err"); setTimeout(() => logout(false), 1500); }, TIMEOUT);
   saveSession();
 }
+function handleUserActivity() { resetTimer(); }
 function startActivity() {
-  ["click","keydown","mousemove","touchstart","scroll"].forEach(e => document.addEventListener(e, resetTimer, { passive: true }));
+  ["click","keydown","mousemove","touchstart","scroll"].forEach(e => document.addEventListener(e, handleUserActivity, { passive: true }));
+}
+function stopActivity() {
+  ["click","keydown","mousemove","touchstart","scroll"].forEach(e => document.removeEventListener(e, handleUserActivity));
 }
 function showApp() {
   document.getElementById("loginPage").classList.add("hidden");
   document.getElementById("appPage").classList.remove("hidden");
   loadData(); resetTimer(); startActivity();
 }
-function logout() {
-  sessionStorage.removeItem(SESSION_KEY); clearTimeout(inactTimer);
+
+// ── FIXED LOGOUT LOGIC ───────────────────────────────────
+function logout(isSilent = false) {
+  clearTimeout(inactTimer);
+  stopActivity();
+  sessionStorage.removeItem(SESSION_KEY); // সেশন টোটাল ডিলিট
+  
   document.getElementById("loginPage").classList.remove("hidden");
   document.getElementById("appPage").classList.add("hidden");
   document.getElementById("pwInput").value = "";
+  document.getElementById("pwInput").classList.remove("err");
   document.getElementById("errMsg").style.display = "none";
+  
+  if (!isSilent) toast("সফলভাবে Logout হয়েছে 🔒", "info");
 }
  
 // ── LOGIN ─────────────────────────────────────────────────
@@ -290,7 +308,7 @@ document.getElementById("loginBtn").onclick = () => {
   else { document.getElementById("pwInput").classList.add("err"); document.getElementById("errMsg").style.display = "block"; document.getElementById("pwInput").value = ""; }
 };
 document.getElementById("pwInput").addEventListener("keydown", e => { if (e.key === "Enter") document.getElementById("loginBtn").click(); });
-document.getElementById("logoutBtn").onclick = logout;
+document.getElementById("logoutBtn").onclick = () => logout(false);
  
 // ── PASSWORD CHANGE ───────────────────────────────────────
 let masterOk = false;
@@ -379,15 +397,13 @@ async function tgUrl(fileId) {
   return null;
 }
  
-// ── 100% WORKING GLOBAL CLOUD SYNC SYSTEM (PINNED BASED) ──
+// ── GLOBAL CLOUD SYNC SYSTEM ─────────────────────────────
 async function loadData() {
-  // ১. অফলাইন ব্যাকআপ ক্যাশ থেকে ইনস্ট্যান্ট লোড হবে
   try {
     const c = JSON.parse(localStorage.getItem("sc_cache") || "{}");
     if(c.files) { files = c.files; recycle = c.recycle || []; render(); renderStats(); updateBinCount(); }
   } catch {}
  
-  // ২. অন্য ফোনের জন্য সরাসরি চ্যানেলের পিন করা মেসেজ থেকে লেটেস্ট ডেটা টানবে
   try {
     const r = await fetch(`${TG}/getChat?chat_id=${TG_CHAT}`);
     const d = await r.json();
@@ -411,10 +427,8 @@ async function saveData() {
   const txt = DATA_TAG + JSON.stringify({ files, recycle });
   
   try {
-    // যেকোনো ডিভাইস থেকে এডিট করলে সরাসরি ওই মেসেজ আপডেট হবে
     await tg("editMessageText", { chat_id: TG_CHAT, message_id: parseInt(dataMsgId), text: txt });
   } catch {
-    // যদি পুরনো মেসেজ আইডি কোনো কারণে নষ্ট বা ডিলিট হয়, তবে নতুন মেসেজ তৈরি করে পিন করে দেবে
     const r = await tg("sendMessage", { chat_id: TG_CHAT, text: txt });
     if (r.ok) { 
       dataMsgId = String(r.result.message_id); 
