@@ -17,21 +17,13 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     body { background-color: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
     
-    /* Login Page Styling */
-    .login-container { max-width: 450px; margin: auto; padding: 2rem; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); width: 90%; }
-    .login-title { text-align: center; margin-bottom: 1.5rem; font-size: 1.8rem; }
-    .form-group { margin-bottom: 1.2rem; }
-    .form-group label { display: block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.9rem; }
-    .form-group input { width: 100%; padding: 0.75rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); outline: none; }
-    .form-group input:focus { border-color: var(--accent); }
-    .btn { width: 100%; padding: 0.75rem; background: var(--accent); border: none; border-radius: 6px; color: white; font-weight: bold; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
-    .btn:hover { background: #2563eb; }
-    
     /* Main Dashboard Styling */
-    .dashboard { display: none; max-width: 1000px; margin: 2rem auto; width: 95%; flex: 1; }
+    .dashboard { max-width: 1000px; margin: 2rem auto; width: 95%; flex: 1; }
     .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
     .logo { font-size: 1.5rem; font-weight: bold; display: flex; align-items: center; gap: 0.5rem; }
-    .btn-logout { width: auto; padding: 0.5rem 1rem; background: #ef4444; font-size: 0.9rem; }
+    .btn { width: auto; padding: 0.5rem 1rem; background: var(--accent); border: none; border-radius: 6px; color: white; font-weight: bold; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+    .btn:hover { background: #2563eb; }
+    .btn-logout { padding: 0.5rem 1rem; background: #ef4444; font-size: 0.9rem; }
     .btn-logout:hover { background: #dc2626; }
     
     .stats-bar { display: flex; justify-content: space-between; align-items: center; background: var(--panel); padding: 1rem; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 1.5rem; }
@@ -61,7 +53,7 @@
     .btn-filter.active { background: var(--accent); color: white; border-color: var(--accent); }
     
     /* Breadcrumb */
-    .breadcrumb { display: flex; items: center; gap: 0.25rem; margin-bottom: 1rem; font-size: 0.9rem; color: var(--text-muted); }
+    .breadcrumb { display: flex; align-items: center; gap: 0.25rem; margin-bottom: 1rem; font-size: 0.9rem; color: var(--text-muted); }
     .breadcrumb span { cursor: pointer; }
     .breadcrumb span:hover { color: var(--text); }
     .breadcrumb span.active { color: var(--accent); font-weight: bold; cursor: default; }
@@ -92,21 +84,7 @@
 </head>
 <body>
 
-  <!-- Login Area -->
-  <div id="loginPage" class="login-container">
-    <h2 class="login-title"><i class="fa-solid fa-cloud"></i> Suman's Cloud</h2>
-    <div class="form-group">
-      <label for="botToken">Telegram Bot Token</label>
-      <input type="password" id="botToken" placeholder="Enter Bot Token...">
-    </div>
-    <div class="form-group">
-      <label for="chatId">Telegram Chat/Channel ID</label>
-      <input type="text" id="chatId" placeholder="Enter Chat ID (e.g. -100...)">
-    </div>
-    <button class="btn" onclick="login()"><i class="fa-solid fa-right-to-bracket"></i> Login</button>
-  </div>
-
-  <!-- Main App Area -->
+  <!-- Dashboard View (সরাসরি আপনার আগের মত ওয়ান-ক্লিক প্রম্পট মেকানিজম) -->
   <div id="appPage" class="dashboard">
     <div class="header">
       <div class="logo"><i class="fa-solid fa-cloud"></i> Suman's Cloud</div>
@@ -167,35 +145,32 @@
     let currentTab = "files";
     let activeFilter = "all";
 
-    // অ্যাপ লোড স্ক্রিপ্ট
+    // আপনার আগের চেনা মেকানিজম: অ্যাপ লোডেই প্রম্পট দিয়ে টোকেন চেক করবে
     window.addEventListener("DOMContentLoaded", () => {
-      const savedBot = localStorage.getItem("sc_bot");
-      const savedChat = localStorage.getItem("sc_chat");
-      if(savedBot && savedChat) {
-        TG = `https://api.telegram.org/bot${savedBot}`;
-        TG_CHAT = savedChat;
-        document.getElementById("loginPage").style.display = "none";
-        document.getElementById("appPage").style.display = "block";
-        setupDragAndDrop();
-        loadData();
-      }
+      checkLoginStatus();
     });
 
-    function login() {
-      const bot = document.getElementById("botToken").value.trim();
-      const chat = document.getElementById("chatId").value.trim();
-      if(!bot || !chat) return toast("দয়া করে দুটি তথ্যই সঠিকভাবে দিন", "err");
+    function checkLoginStatus() {
+      let savedBot = localStorage.getItem("sc_bot");
+      let savedChat = localStorage.getItem("sc_chat");
       
-      localStorage.setItem("sc_bot", bot);
-      localStorage.setItem("sc_chat", chat);
-      TG = `https://api.telegram.org/bot${bot}`;
-      TG_CHAT = chat;
+      if(!savedBot || !savedChat) {
+        savedBot = prompt("আপনার Telegram Bot Token দিন:");
+        savedChat = prompt("আপনার Telegram Chat/Channel ID দিন:");
+        
+        if(savedBot && savedChat) {
+          localStorage.setItem("sc_bot", savedBot.trim());
+          localStorage.setItem("sc_chat", savedChat.trim());
+        } else {
+          alert("তথ্য না দিলে ক্লাউড চালু করা সম্ভব নয়! পেজটি রিফ্রেশ করুন।");
+          return;
+        }
+      }
       
-      document.getElementById("loginPage").style.display = "none";
-      document.getElementById("appPage").style.display = "block";
+      TG = `https://api.telegram.org/bot${localStorage.getItem("sc_bot")}`;
+      TG_CHAT = localStorage.getItem("sc_chat");
       setupDragAndDrop();
       loadData();
-      toast("সফলভাবে লগইন হয়েছে!");
     }
 
     function logout() {
@@ -273,7 +248,6 @@
         const r = await fetch(`${TG}/sendDocument`, { method: "POST", body: fd });
         const d = await r.json();
         if (d.ok) {
-          // ফাইল জাস্ট সেভ হলেই হবে, পিন করার বাধ্যবাধকতা আর রইলো না
           try {
             await fetch(`${TG}/pinChatMessage`, {
               method: "POST",
@@ -299,7 +273,6 @@
       return null;
     }
 
-    // ফোল্ডার নেভিগেশন ও ফাইল প্রসেসিং লজিক 
     function triggerNewFolder() {
       const name = prompt("ফোল্ডারের নাম লিখুন:");
       if(!name) return;
@@ -358,7 +331,6 @@
       return 'others';
     }
 
-    // রেন্ডারিং ও ইন্টারফেস আপডেট
     function render() {
       const container = document.getElementById("itemsContainer");
       const searchVal = document.getElementById("searchInput").value.toLowerCase();
@@ -373,7 +345,6 @@
         itemsToDisplay = recycle;
       }
 
-      // সার্চ এবং টাইপ ফিল্টার প্রয়োগ
       if(searchVal) {
         itemsToDisplay = itemsToDisplay.filter(i => i.name.toLowerCase().includes(searchVal));
       }
@@ -444,7 +415,6 @@
       return 'fa-solid fa-file item-icon file';
     }
 
-    // ব্যাকআপ মুভমেন্ট রুলস
     function moveToRecycle(id) {
       const idx = files.findIndex(i => i.id === id);
       if(idx === -1) return;
@@ -507,6 +477,7 @@
       render();
     }
 
+    // ফিল্টার হ্যান্ডলার
     function filterType(type, btn) {
       activeFilter = type;
       document.querySelectorAll(".btn-filter").forEach(b => b.classList.remove("active"));
@@ -524,7 +495,6 @@
       document.getElementById("storageStats").innerText = "মোট ব্যবহার: " + (totalBytes / Math.pow(1024, i)).toFixed(2) + ' ' + sizes[i];
     }
 
-    // ড্র্যাগ অ্যান্ড ড্রপ ফাংশনালিটি
     function setupDragAndDrop() {
       const dropzone = document.getElementById("uploadZone");
       ['dragenter', 'dragover'].forEach(eventName => {
@@ -539,7 +509,6 @@
       }, false);
     }
 
-    // নোটিফিকেশন সিস্টেম
     function toast(msg, type = "success") {
       const container = document.getElementById("toastContainer");
       const el = document.createElement("div");
