@@ -143,7 +143,6 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <script>
-    // আপনার আসল টেলিগ্রাম ক্রেডেনশিয়াল
     const CONFIG_BOT_TOKEN = "7290940562:AAHDNn9x5uI2-2K4E9oB_p4hO6K7WzX8Y1M";
     const CONFIG_CHAT_ID = "-1002241589403";
 
@@ -188,7 +187,7 @@
       location.reload();
     }
 
-    // ডাটা লোড ও সিঙ্ক
+    // চ্যাটের পিনড মেসেজ থেকে ডেটাবেস ফাইলটি রিড করার একদম সঠিক মেথড
     async function loadData() {
       try {
         const c = JSON.parse(localStorage.getItem("sc_cache") || "{}");
@@ -196,33 +195,32 @@
       } catch {}
      
       try {
-        const r = await fetch(`${TG}/getChatHistory?chat_id=${TG_CHAT}&limit=30`);
+        // চ্যাটের কারেন্ট তথ্য এনে তার pinned_message রিড করা হচ্ছে
+        const r = await fetch(`${TG}/getChat?chat_id=${TG_CHAT}`);
         const d = await r.json();
-        if (d.ok && Array.isArray(d.result)) {
-          for (let i = 0; i < d.result.length; i++) {
-            const msg = d.result[i];
-            if (msg.document && msg.document.file_name === "cloud_database.json") {
-              const fileId = msg.document.file_id;
-              const url = await tgUrl(fileId);
-              if(url) {
-                const res = await fetch(url);
-                const rec = await res.json();
-                if(rec && Array.isArray(rec.files)) {
-                  files = rec.files; recycle = rec.recycle || [];
-                  localStorage.setItem("sc_cache", JSON.stringify({ files, recycle }));
-                  render(); renderStats(); updateBinCount();
-                  return;
-                }
+        if (d.ok && d.result.pinned_message && d.result.pinned_message.document) {
+          const doc = d.result.pinned_message.document;
+          if (doc.file_name === "cloud_database.json") {
+            const url = await tgUrl(doc.file_id);
+            if(url) {
+              const res = await fetch(url);
+              const rec = await res.json();
+              if(rec && Array.isArray(rec.files)) {
+                files = rec.files; recycle = rec.recycle || [];
+                localStorage.setItem("sc_cache", JSON.stringify({ files, recycle }));
+                clearErrorToasts();
+                render(); renderStats(); updateBinCount();
+                return;
               }
             }
           }
         }
-      } catch (e) { console.log("Sync error fallback triggers"); }
+      } catch (e) { console.error("Sync read fallback:", e); }
       
       render(); renderStats(); updateBinCount();
     }
 
-    // সম্পূর্ণ পুনর্নির্মিত এবং ফিক্সড ১০০% কার্যকরী সেভ মেথড
+    // নতুন ডেটাবেস আপলোড করে সেটাকে চ্যাটে Pin করার ফিক্সড সিস্টেম
     async function saveData() {
       const dataString = JSON.stringify({ files, recycle });
       localStorage.setItem("sc_cache", dataString);
@@ -233,21 +231,24 @@
       fd.append("document", blob, "cloud_database.json");
       
       try {
-        const r = await fetch(`${TG}/sendDocument`, { 
-          method: "POST", 
-          body: fd
-        });
+        const r = await fetch(`${TG}/sendDocument`, { method: "POST", body: fd });
         const d = await r.json();
         if (d.ok) {
-          document.querySelectorAll('.toast.err').forEach(el => el.remove());
+          clearErrorToasts();
+          // নতুন পাঠানো ফাইলটিকে চ্যাটে পিন করে রাখা হচ্ছে
+          const msgId = d.result.message_id;
+          await fetch(`${TG}/pinChatMessage?chat_id=${TG_CHAT}&message_id=${msgId}&disable_notification=true`);
         } else {
-          console.error("Telegram error response:", d);
-          throw new Error(d.description || "Rejected by Telegram");
+          throw new Error(d.description);
         }
       } catch (err) {
-        console.error("Save error details:", err);
+        console.error("Save failed:", err);
         toast("সার্ভার ডাটা সিঙ্ক করতে পারেনি। আপনার ইন্টারনেট বা বট চেক করুন", "err");
       }
+    }
+
+    function clearErrorToasts() {
+      document.querySelectorAll('.toast.err').forEach(el => el.remove());
     }
 
     async function tgUrl(id) {
