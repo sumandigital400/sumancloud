@@ -17,12 +17,20 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     body { background-color: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
     
-    /* Main Dashboard Styling */
-    .dashboard { max-width: 1000px; margin: 2rem auto; width: 95%; flex: 1; }
+    /* লগইন পেজের স্টাইল */
+    .login-container { max-width: 400px; margin: auto; padding: 2rem; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); width: 90%; text-align: center; }
+    .login-title { margin-bottom: 1.5rem; font-size: 1.8rem; }
+    .form-group { margin-bottom: 1.2rem; }
+    .form-group input { width: 100%; padding: 0.75rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); outline: none; text-align: center; font-size: 1rem; }
+    .form-group input:focus { border-color: var(--accent); }
+    
+    /* মূল ড্যাশবোর্ড স্টাইল */
+    .dashboard { display: none; max-width: 1000px; margin: 2rem auto; width: 95%; flex: 1; }
     .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
     .logo { font-size: 1.5rem; font-weight: bold; display: flex; align-items: center; gap: 0.5rem; }
     .btn { width: auto; padding: 0.5rem 1rem; background: var(--accent); border: none; border-radius: 6px; color: white; font-weight: bold; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
     .btn:hover { background: #2563eb; }
+    .btn-login { width: 100%; padding: 0.75rem; }
     .btn-logout { padding: 0.5rem 1rem; background: #ef4444; font-size: 0.9rem; }
     .btn-logout:hover { background: #dc2626; }
     
@@ -33,7 +41,6 @@
     .tab { padding: 0.5rem 1rem; background: var(--panel); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; color: var(--text-muted); display: flex; align-items: center; gap: 0.5rem; }
     .tab.active { background: var(--accent); color: white; border-color: var(--accent); }
     
-    /* Dropzone Area */
     .dropzone { border: 2px dashed var(--border); background: var(--panel); border-radius: 8px; padding: 2.5rem; text-align: center; cursor: pointer; transition: border-color 0.2s; margin-bottom: 1.5rem; }
     .dropzone:hover, .dropzone.dragover { border-color: var(--accent); }
     .dropzone-title { font-size: 1.2rem; margin-bottom: 0.5rem; font-weight: bold; }
@@ -43,7 +50,6 @@
     .btn-new-folder { background: #10b981; }
     .btn-new-folder:hover { background: #059669; }
     
-    /* Search Bar & Filters */
     .search-filter-box { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem; margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 0.75rem; }
     .search-input-wrapper { position: relative; }
     .search-input-wrapper i { position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
@@ -52,13 +58,11 @@
     .btn-filter { width: auto; padding: 0.35rem 0.75rem; font-size: 0.8rem; background: var(--bg); border: 1px solid var(--border); color: var(--text-muted); border-radius: 6px; cursor: pointer; }
     .btn-filter.active { background: var(--accent); color: white; border-color: var(--accent); }
     
-    /* Breadcrumb */
     .breadcrumb { display: flex; align-items: center; gap: 0.25rem; margin-bottom: 1rem; font-size: 0.9rem; color: var(--text-muted); }
     .breadcrumb span { cursor: pointer; }
     .breadcrumb span:hover { color: var(--text); }
     .breadcrumb span.active { color: var(--accent); font-weight: bold; cursor: default; }
     
-    /* Items List Container */
     .items-container { display: flex; flex-direction: column; gap: 0.5rem; min-height: 150px; }
     .item-row { background: var(--panel); border: 1px solid var(--border); padding: 0.85rem 1rem; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; transition: transform 0.1s; }
     .item-row:hover { transform: translateX(2px); }
@@ -75,7 +79,6 @@
     .empty-state { text-align: center; color: var(--text-muted); padding: 3rem 1rem; display: flex; flex-direction: column; align-items: center; gap: 1rem; }
     .empty-icon { font-size: 2.5rem; }
     
-    /* Toast System */
     .toast-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 9999; display: flex; flex-direction: column; gap: 0.5rem; }
     .toast { background: #10b981; color: white; padding: 0.75rem 1.25rem; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem; animation: slideIn 0.2s ease-out; }
     .toast.err { background: #ef4444; }
@@ -84,7 +87,16 @@
 </head>
 <body>
 
-  <!-- Dashboard View (সরাসরি আপনার আগের মত ওয়ান-ক্লিক প্রম্পট মেকানিজম) -->
+  <!-- লগইন পেজ -->
+  <div id="loginPage" class="login-container">
+    <h2 class="login-title"><i class="fa-solid fa-cloud"></i> Suman's Cloud</h2>
+    <div class="form-group">
+      <input type="password" id="loginPassword" placeholder="পাসওয়ার্ড লিখুন...">
+    </div>
+    <button class="btn btn-login" onclick="validateLogin()"><i class="fa-solid fa-right-to-bracket"></i> Login</button>
+  </div>
+
+  <!-- মূল ড্যাশবোর্ড এরিয়া -->
   <div id="appPage" class="dashboard">
     <div class="header">
       <div class="logo"><i class="fa-solid fa-cloud"></i> Suman's Cloud</div>
@@ -101,7 +113,6 @@
       <div id="tabRecycle" class="tab" onclick="switchTab('recycle')"><i class="fa-solid fa-trash"></i> Recycle Bin (<span id="binCount">0</span>)</div>
     </div>
     
-    <!-- File Dropzone UI -->
     <div id="uploadZone" class="dropzone" onclick="document.getElementById('fileInput').click()">
       <div class="dropzone-title">Drag করো বা Button চাপো</div>
       <div style="font-size: 0.8rem; color: var(--text-muted);">সমস্ত ফাইল Telegram এ store হবে — Unlimited</div>
@@ -112,7 +123,6 @@
       <input type="file" id="fileInput" style="display: none;" multiple onchange="handleFileSelect(event)">
     </div>
     
-    <!-- Search Bar & Advanced Filters -->
     <div class="search-filter-box">
       <div class="search-input-wrapper">
         <i class="fa-solid fa-search"></i>
@@ -128,57 +138,62 @@
       </div>
     </div>
     
-    <!-- Breadcrumb Route Navigation -->
     <div id="breadcrumb" class="breadcrumb"></div>
-    
-    <!-- Real-time Render View Area -->
     <div id="itemsContainer" class="items-container"></div>
   </div>
 
   <div class="toast-container" id="toastContainer"></div>
 
   <script>
-    let TG = "", TG_CHAT = "";
+    // আপনার আগের চ্যাট থেকে নেওয়া আসল টেলিগ্রাম ক্রেডেনশিয়াল
+    const CONFIG_BOT_TOKEN = "7290940562:AAHDNn9x5uI2-2K4E9oB_p4hO6K7WzX8Y1M";
+    const CONFIG_CHAT_ID = "-1002241589403";
+
+    const TG = `https://api.telegram.org/bot${CONFIG_BOT_TOKEN}`;
+    const TG_CHAT = CONFIG_CHAT_ID;
+    
     let files = [];
     let recycle = [];
     let currentFolderId = "root";
     let currentTab = "files";
     let activeFilter = "all";
 
-    // আপনার আগের চেনা মেকানিজম: অ্যাপ লোডেই প্রম্পট দিয়ে টোকেন চেক করবে
     window.addEventListener("DOMContentLoaded", () => {
-      checkLoginStatus();
-    });
-
-    function checkLoginStatus() {
-      let savedBot = localStorage.getItem("sc_bot");
-      let savedChat = localStorage.getItem("sc_chat");
-      
-      if(!savedBot || !savedChat) {
-        savedBot = prompt("আপনার Telegram Bot Token দিন:");
-        savedChat = prompt("আপনার Telegram Chat/Channel ID দিন:");
-        
-        if(savedBot && savedChat) {
-          localStorage.setItem("sc_bot", savedBot.trim());
-          localStorage.setItem("sc_chat", savedChat.trim());
-        } else {
-          alert("তথ্য না দিলে ক্লাউড চালু করা সম্ভব নয়! পেজটি রিফ্রেশ করুন।");
-          return;
-        }
+      // সেশন চেক
+      if (sessionStorage.getItem("sc_auth") === "true") {
+        document.getElementById("loginPage").style.display = "none";
+        document.getElementById("appPage").style.display = "block";
+        setupDragAndDrop();
+        loadData();
       }
       
-      TG = `https://api.telegram.org/bot${localStorage.getItem("sc_bot")}`;
-      TG_CHAT = localStorage.getItem("sc_chat");
-      setupDragAndDrop();
-      loadData();
+      // পাসওয়ার্ড ইনপুটে এন্টার চাপলে লগইন হবে
+      document.getElementById("loginPassword").addEventListener("keypress", (e) => {
+        if (e.key === "Enter") validateLogin();
+      });
+    });
+
+    // পাসওয়ার্ড ভ্যালিডেশন
+    function validateLogin() {
+      const pass = document.getElementById("loginPassword").value;
+      if (pass === "Suman400@") {
+        sessionStorage.setItem("sc_auth", "true");
+        document.getElementById("loginPage").style.display = "none";
+        document.getElementById("appPage").style.display = "block";
+        setupDragAndDrop();
+        loadData();
+        toast("সফলভাবে লগইন হয়েছে!");
+      } else {
+        toast("ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।", "err");
+      }
     }
 
     function logout() {
-      localStorage.clear();
+      sessionStorage.removeItem("sc_auth");
       location.reload();
     }
 
-    // ── UNLIMITED JSON SYNC SYSTEM (FIXED SYNC ISSUE) ─────────
+    // ডাটা লোড ও সিঙ্ক সিস্টেম
     async function loadData() {
       try {
         const c = JSON.parse(localStorage.getItem("sc_cache") || "{}");
@@ -186,11 +201,9 @@
       } catch {}
      
       try {
-        // পিন করা মেসেজের বদলে সরাসরি চ্যানেলের সর্বশেষ ২০টি মেসেজ চেক করবে ডেটা ফাইলের জন্য
         const r = await fetch(`${TG}/getChatHistory?chat_id=${TG_CHAT}&limit=20`);
         const d = await r.json();
         if (d.ok && Array.isArray(d.result)) {
-          // সর্বশেষ মেসেজ থেকে উল্টোভাবে খুঁজবে (যাতে একদম লেটেস্ট ফাইলটি পায়)
           for (let i = 0; i < d.result.length; i++) {
             const msg = d.result[i];
             if (msg.document && msg.document.file_name === "cloud_database.json") {
@@ -209,11 +222,8 @@
             }
           }
         }
-      } catch (e) { 
-        console.log("Sync info: Reading fallback methods"); 
-      }
+      } catch (e) { console.log("Sync error fallback triggers"); }
 
-      // যদি হিস্ট্রি মেথড কাজ না করে, তবে ডিরেক্ট গেটচ্যাট ব্যাকআপ ট্রাই করবে
       try {
         const r = await fetch(`${TG}/getChat?chat_id=${TG_CHAT}`);
         const d = await r.json();
@@ -257,10 +267,10 @@
           } catch(e){}
           document.querySelectorAll('.toast.err').forEach(el => el.remove());
         } else {
-          throw new Error("Telegram rejection");
+          throw new Error("Rejected");
         }
       } catch {
-        toast("সার্ভার আপডেট ব্যর্থ! টেলিগ্রাম সেটিংস চেক করুন", "err");
+        toast("সার্ভার আপডেট ব্যর্থ! কোডের সেটিংস চেক করুন", "err");
       }
     }
 
@@ -268,7 +278,7 @@
       try {
         const r = await fetch(`${TG}/getFile?file_id=${id}`);
         const d = await r.json();
-        if(d.ok) return `https://api.telegram.org/file/bot${localStorage.getItem("sc_bot")}/${d.result.file_path}`;
+        if(d.ok) return `https://api.telegram.org/file/bot${CONFIG_BOT_TOKEN}/${d.result.file_path}`;
       } catch {}
       return null;
     }
@@ -477,7 +487,6 @@
       render();
     }
 
-    // ফিল্টার হ্যান্ডলার
     function filterType(type, btn) {
       activeFilter = type;
       document.querySelectorAll(".btn-filter").forEach(b => b.classList.remove("active"));
@@ -497,6 +506,7 @@
 
     function setupDragAndDrop() {
       const dropzone = document.getElementById("uploadZone");
+      if(!dropzone) return;
       ['dragenter', 'dragover'].forEach(eventName => {
         dropzone.addEventListener(eventName, (e) => { e.preventDefault(); dropzone.classList.add('dragover'); }, false);
       });
