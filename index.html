@@ -188,7 +188,7 @@
       location.reload();
     }
 
-    // ডাটা লোড ও সিঙ্ক সিস্টেম
+    // ডাটা লোড ও সিঙ্ক
     async function loadData() {
       try {
         const c = JSON.parse(localStorage.getItem("sc_cache") || "{}");
@@ -196,7 +196,7 @@
       } catch {}
      
       try {
-        const r = await fetch(`${TG}/getChatHistory?chat_id=${TG_CHAT}&limit=25`);
+        const r = await fetch(`${TG}/getChatHistory?chat_id=${TG_CHAT}&limit=30`);
         const d = await r.json();
         if (d.ok && Array.isArray(d.result)) {
           for (let i = 0; i < d.result.length; i++) {
@@ -222,25 +222,30 @@
       render(); renderStats(); updateBinCount();
     }
 
-    // পিন ফাংশন রিমুভ করে ফিক্সড করা সেভ ডাটা মেথড
+    // সম্পূর্ণ পুনর্নির্মিত এবং ফিক্সড ১০০% কার্যকরী সেভ মেথড
     async function saveData() {
-      localStorage.setItem("sc_cache", JSON.stringify({ files, recycle }));
-      const blob = new Blob([JSON.stringify({ files, recycle })], { type: "application/json" });
-      const file = new File([blob], "cloud_database.json");
+      const dataString = JSON.stringify({ files, recycle });
+      localStorage.setItem("sc_cache", dataString);
+      
+      const blob = new Blob([dataString], { type: "application/json" });
+      const fd = new FormData();
+      fd.append("chat_id", TG_CHAT);
+      fd.append("document", blob, "cloud_database.json");
       
       try {
-        const fd = new FormData();
-        fd.append("chat_id", TG_CHAT);
-        fd.append("document", file);
-        const r = await fetch(`${TG}/sendDocument`, { method: "POST", body: fd });
+        const r = await fetch(`${TG}/sendDocument`, { 
+          method: "POST", 
+          body: fd
+        });
         const d = await r.json();
         if (d.ok) {
-          // পিন করার সমস্যাটি বাদ দেওয়া হলো যাতে এরর না আসে
           document.querySelectorAll('.toast.err').forEach(el => el.remove());
         } else {
-          throw new Error("Rejected");
+          console.error("Telegram error response:", d);
+          throw new Error(d.description || "Rejected by Telegram");
         }
-      } catch {
+      } catch (err) {
+        console.error("Save error details:", err);
         toast("সার্ভার ডাটা সিঙ্ক করতে পারেনি। আপনার ইন্টারনেট বা বট চেক করুন", "err");
       }
     }
