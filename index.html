@@ -104,6 +104,7 @@ body{min-height:100vh;background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460)
 </head>
 <body>
  
+<!-- LOGIN -->
 <div id="loginPage">
   <div class="loginBox">
     <div class="ico">☁️</div>
@@ -116,6 +117,7 @@ body{min-height:100vh;background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460)
   </div>
 </div>
  
+<!-- APP -->
 <div id="appPage" class="hidden">
   <div class="header">
     <div><h1>☁️ Suman's Cloud</h1><p id="stats">লোড হচ্ছে...</p></div>
@@ -132,6 +134,7 @@ body{min-height:100vh;background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460)
     <button class="tab" data-tab="recycle">🗑️ Recycle Bin<span id="binCount"></span></button>
   </div>
  
+  <!-- FILES TAB -->
   <div id="filesTab">
     <div class="uploadArea" id="uploadArea">
       <input type="file" id="fileInput" multiple hidden/>
@@ -168,11 +171,12 @@ body{min-height:100vh;background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460)
       <div class="breadcrumb" id="breadcrumb"></div>
     </div>
  
-    <div class="dropHint" id="dropHint">📁 Folder এর উপর ছেড়ে দাও — ফাইলটি সেই folder এ চলে যাবে</div>
+    <div class="dropHint" id="dropHint">📁 Folder এর উপর ছেড়ে দাও</div>
  
     <div id="mainList"></div>
   </div>
  
+  <!-- RECYCLE TAB -->
   <div id="recycleTab" class="hidden">
     <div class="recycleBar">
       <span style="font-size:14px;font-weight:600">🗑️ Recycle Bin</span>
@@ -182,6 +186,7 @@ body{min-height:100vh;background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460)
   </div>
 </div>
  
+<!-- PASSWORD MODAL -->
 <div class="overlay hidden" id="changePwModal">
   <div class="modalBox">
     <h3>🔑 Password পরিবর্তন</h3>
@@ -198,6 +203,7 @@ body{min-height:100vh;background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460)
   </div>
 </div>
  
+<!-- NEW FOLDER MODAL -->
 <div class="overlay hidden" id="newFolderModal">
   <div class="modalBox">
     <h3>➕ নতুন Folder</h3>
@@ -209,6 +215,7 @@ body{min-height:100vh;background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460)
   </div>
 </div>
  
+<!-- RENAME MODAL -->
 <div class="overlay hidden" id="renameModal">
   <div class="modalBox">
     <h3>✏️ Rename</h3>
@@ -220,6 +227,7 @@ body{min-height:100vh;background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460)
   </div>
 </div>
  
+<!-- PREVIEW -->
 <div class="previewOverlay hidden" id="previewOverlay">
   <div class="previewBox">
     <button class="previewClose" id="previewClose">✕</button>
@@ -235,8 +243,6 @@ const TIMEOUT     = 30 * 60 * 1000;
 const TG_TOKEN    = "8508841798:AAGlVhkBZLpH4jI7Mq5slIb-9FRkAkqJeVg";
 const TG_CHAT     = "-1003977401726";
 const TG          = `https://api.telegram.org/bot${TG_TOKEN}`;
-const DATA_TAG    = "SC_DATA_V3:";
-let dataMsgId     = "9"; 
  
 // ── STATE ────────────────────────────────────────────────
 let PASS        = localStorage.getItem("suman_pw") || "Suman400@";
@@ -254,11 +260,10 @@ let dragFolderPath = null;
 // ── BOOT ─────────────────────────────────────────────────
 window.addEventListener("load", () => {
   const s = sessionStorage.getItem(SESSION_KEY);
-  // রিফ্রেশ করলে সেশন ভ্যালিড থাকলে সরাসরি অ্যাপ দেখাবে
   if (s && Date.now() - parseInt(s) < TIMEOUT) {
     showApp();
   } else {
-    logout(true); // সেশন না থাকলে শক্তভাবে রিসেট করবে
+    logout(true);
   }
 });
 window.addEventListener("popstate", () => {
@@ -285,19 +290,15 @@ function showApp() {
   document.getElementById("appPage").classList.remove("hidden");
   loadData(); resetTimer(); startActivity();
 }
-
-// ── FIXED LOGOUT LOGIC ───────────────────────────────────
 function logout(isSilent = false) {
   clearTimeout(inactTimer);
   stopActivity();
-  sessionStorage.removeItem(SESSION_KEY); // সেশন টোটাল ডিলিট
-  
+  sessionStorage.removeItem(SESSION_KEY);
   document.getElementById("loginPage").classList.remove("hidden");
   document.getElementById("appPage").classList.add("hidden");
   document.getElementById("pwInput").value = "";
   document.getElementById("pwInput").classList.remove("err");
   document.getElementById("errMsg").style.display = "none";
-  
   if (!isSilent) toast("সফলভাবে Logout হয়েছে 🔒", "info");
 }
  
@@ -397,7 +398,7 @@ async function tgUrl(fileId) {
   return null;
 }
  
-// ── GLOBAL CLOUD SYNC SYSTEM ─────────────────────────────
+// ── UNLIMITED JSON SYNC SYSTEM (FIXED TEXT LIMIT) ─────────
 async function loadData() {
   try {
     const c = JSON.parse(localStorage.getItem("sc_cache") || "{}");
@@ -407,11 +408,12 @@ async function loadData() {
   try {
     const r = await fetch(`${TG}/getChat?chat_id=${TG_CHAT}`);
     const d = await r.json();
-    if (d.ok && d.result.pinned_message) {
-      const txt = d.result.pinned_message.text || "";
-      if (txt.startsWith(DATA_TAG)) {
-        dataMsgId = String(d.result.pinned_message.message_id);
-        const rec = JSON.parse(txt.slice(DATA_TAG.length));
+    if (d.ok && d.result.pinned_message && d.result.pinned_message.document) {
+      const fileId = d.result.pinned_message.document.file_id;
+      const url = await tgUrl(fileId);
+      if(url) {
+        const res = await fetch(url);
+        const rec = await res.json();
         files = rec.files || []; recycle = rec.recycle || [];
         localStorage.setItem("sc_cache", JSON.stringify({ files, recycle }));
         render(); renderStats(); updateBinCount();
@@ -424,16 +426,20 @@ async function loadData() {
 
 async function saveData() {
   localStorage.setItem("sc_cache", JSON.stringify({ files, recycle }));
-  const txt = DATA_TAG + JSON.stringify({ files, recycle });
+  const blob = new Blob([JSON.stringify({ files, recycle })], { type: "application/json" });
+  const file = new File([blob], "cloud_database.json");
   
   try {
-    await tg("editMessageText", { chat_id: TG_CHAT, message_id: parseInt(dataMsgId), text: txt });
-  } catch {
-    const r = await tg("sendMessage", { chat_id: TG_CHAT, text: txt });
-    if (r.ok) { 
-      dataMsgId = String(r.result.message_id); 
-      await tg("pinChatMessage", { chat_id: TG_CHAT, message_id: parseInt(dataMsgId), disable_notification: true });
+    const fd = new FormData();
+    fd.append("chat_id", TG_CHAT);
+    fd.append("document", file);
+    const r = await fetch(`${TG}/sendDocument`, { method: "POST", body: fd });
+    const d = await r.json();
+    if (d.ok) {
+      await tg("pinChatMessage", { chat_id: TG_CHAT, message_id: d.result.message_id, disable_notification: true });
     }
+  } catch {
+    toast("সার্ভার আপডেট ব্যর্থ!", "err");
   }
 }
  
@@ -562,76 +568,54 @@ async function doRename() {
  
 // ── DRAG & DROP MOVE ──────────────────────────────────────
 function onFileDragStart(e, fileId) {
-  dragFileId = fileId;
-  dragFolderPath = null;
+  dragFileId = fileId; dragFolderPath = null;
   e.dataTransfer.effectAllowed = "move";
   e.dataTransfer.setData("text/plain", fileId);
   document.getElementById("dropHint").classList.add("show");
   setTimeout(() => { const el = document.querySelector(`.fileCard[data-id="${fileId}"]`); if(el) el.classList.add("dragging"); }, 0);
 }
- 
 function onFolderDragStart(e, folderPath) {
-  dragFolderPath = folderPath;
-  dragFileId = null;
+  dragFolderPath = folderPath; dragFileId = null;
   e.dataTransfer.effectAllowed = "move";
   e.dataTransfer.setData("text/plain", folderPath);
   document.getElementById("dropHint").classList.add("show");
 }
- 
 function onDragEnd() {
-  dragFileId = null;
-  dragFolderPath = null;
+  dragFileId = null; dragFolderPath = null;
   document.getElementById("dropHint").classList.remove("show");
   document.querySelectorAll(".fileCard.dragging").forEach(el => el.classList.remove("dragging"));
   document.querySelectorAll(".folderCard.drop-target").forEach(el => el.classList.remove("drop-target"));
 }
- 
 function onFolderDragOver(e, targetFolderPath) {
   if (!dragFileId && !dragFolderPath) return;
   if (dragFolderPath && (dragFolderPath === targetFolderPath || targetFolderPath.startsWith(dragFolderPath + "/"))) return;
-  e.preventDefault();
-  e.dataTransfer.dropEffect = "move";
+  e.preventDefault(); e.dataTransfer.dropEffect = "move";
   document.querySelectorAll(".folderCard.drop-target").forEach(el => el.classList.remove("drop-target"));
   const el = document.querySelector(`.folderCard[data-fp="${CSS.escape(targetFolderPath)}"]`);
   if (el) el.classList.add("drop-target");
 }
- 
 function onFolderDragLeave(e, targetFolderPath) {
   const el = document.querySelector(`.folderCard[data-fp="${CSS.escape(targetFolderPath)}"]`);
   if (el && !el.contains(e.relatedTarget)) el.classList.remove("drop-target");
 }
- 
 async function onFolderDrop(e, targetFolderPath) {
-  e.preventDefault();
-  e.stopPropagation();
+  e.preventDefault(); e.stopPropagation();
   document.querySelectorAll(".folderCard.drop-target").forEach(el => el.classList.remove("drop-target"));
   document.getElementById("dropHint").classList.remove("show");
- 
   if (dragFileId) {
     const f = files.find(x => x.id === dragFileId);
-    if (!f) { dragFileId = null; return; }
-    if (f.path === targetFolderPath) { toast("ফাইলটি এই folder এই আছে", "info"); dragFileId = null; return; }
-    f.path = targetFolderPath;
-    dragFileId = null;
-    await saveData();
-    render(); renderStats();
-    toast("ফাইলটি সরানো হয়েছে ✅");
+    if (!f || f.path === targetFolderPath) { dragFileId = null; return; }
+    f.path = targetFolderPath; dragFileId = null;
+    await saveData(); render(); renderStats(); toast("ফাইলটি সরানো হয়েছে ✅");
   } else if (dragFolderPath) {
-    if (dragFolderPath === targetFolderPath || targetFolderPath.startsWith(dragFolderPath + "/")) {
-      toast("ফোল্ডারটি নিজের ভেতরে সরানো যাবে না", "err");
-      dragFolderPath = null;
-      return;
-    }
+    if (dragFolderPath === targetFolderPath || targetFolderPath.startsWith(dragFolderPath + "/")) { toast("ফোল্ডারটি নিজের ভেতরে সরানো যাবে না", "err"); dragFolderPath = null; return; }
     const sourceFolderName = dragFolderPath.split("/").pop();
     const newBasePath = targetFolderPath ? targetFolderPath + "/" + sourceFolderName : sourceFolderName;
     files.forEach(f => {
       if ((f.path || "") === dragFolderPath) f.path = newBasePath;
       else if ((f.path || "").startsWith(dragFolderPath + "/")) f.path = newBasePath + f.path.slice(dragFolderPath.length);
     });
-    dragFolderPath = null;
-    await saveData();
-    render(); renderStats();
-    toast("ফোল্ডারটি সরানো হয়েছে ✅");
+    dragFolderPath = null; await saveData(); render(); renderStats(); toast("ফোল্ডারটি সরানো হয়েছে ✅");
   }
 }
 
