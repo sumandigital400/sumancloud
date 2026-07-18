@@ -414,14 +414,18 @@ async function loadData() {
       if(url) {
         const res = await fetch(url);
         const rec = await res.json();
-        files = rec.files || []; recycle = rec.recycle || [];
-        localStorage.setItem("sc_cache", JSON.stringify({ files, recycle }));
-        render(); renderStats(); updateBinCount();
+        if(rec && Array.isArray(rec.files)) {
+          files = rec.files; recycle = rec.recycle || [];
+          localStorage.setItem("sc_cache", JSON.stringify({ files, recycle }));
+          render(); renderStats(); updateBinCount();
+          return;
+        }
       }
     }
-  } catch { 
-    toast("ক্লাউড সিঙ্ক সমস্যা...", "err"); 
+  } catch (e) { 
+    console.log("Sync info: Starting fresh database"); 
   }
+  render(); renderStats(); updateBinCount();
 }
 
 async function saveData() {
@@ -437,9 +441,12 @@ async function saveData() {
     const d = await r.json();
     if (d.ok) {
       await tg("pinChatMessage", { chat_id: TG_CHAT, message_id: d.result.message_id, disable_notification: true });
+      document.querySelectorAll('.toast.err').forEach(el => el.remove());
+    } else {
+      throw new Error("Telegram rejection");
     }
   } catch {
-    toast("সার্ভার আপডেট ব্যর্থ!", "err");
+    toast("সার্ভার আপডেট ব্যর্থ! টেলিগ্রাম সেটিংস চেক করুন", "err");
   }
 }
  
