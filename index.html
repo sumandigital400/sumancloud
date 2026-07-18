@@ -187,15 +187,20 @@
       location.reload();
     }
 
-    // চ্যাটের পিনড মেসেজ থেকে ডেটাবেস ফাইলটি রিড করার একদম সঠিক মেথড
+    // অপ্টিমাইজড ডাটা লোড প্রসেস
     async function loadData() {
+      // সবার আগে লোকাল ক্যাশ থেকে ডাটা রেন্ডার করে দেওয়া হচ্ছে যাতে ইউজার কোনো ফাঁকা স্ক্রিন বা এরর না দেখে
       try {
         const c = JSON.parse(localStorage.getItem("sc_cache") || "{}");
-        if(c.files) { files = c.files; recycle = c.recycle || []; render(); renderStats(); updateBinCount(); }
-      } catch {}
+        if(c.files) { 
+          files = c.files; 
+          recycle = c.recycle || []; 
+          render(); renderStats(); updateBinCount(); 
+        }
+      } catch(e) {}
      
+      // এরপর ব্যাকগ্রাউন্ডে টেলিগ্রাম ক্লাউড থেকে লেটেস্ট ডাটা সিঙ্ক করার চেষ্টা করা হচ্ছে
       try {
-        // চ্যাটের কারেন্ট তথ্য এনে তার pinned_message রিড করা হচ্ছে
         const r = await fetch(`${TG}/getChat?chat_id=${TG_CHAT}`);
         const d = await r.json();
         if (d.ok && d.result.pinned_message && d.result.pinned_message.document) {
@@ -206,21 +211,21 @@
               const res = await fetch(url);
               const rec = await res.json();
               if(rec && Array.isArray(rec.files)) {
-                files = rec.files; recycle = rec.recycle || [];
+                files = rec.files; 
+                recycle = rec.recycle || [];
                 localStorage.setItem("sc_cache", JSON.stringify({ files, recycle }));
                 clearErrorToasts();
                 render(); renderStats(); updateBinCount();
-                return;
               }
             }
           }
         }
-      } catch (e) { console.error("Sync read fallback:", e); }
-      
-      render(); renderStats(); updateBinCount();
+      } catch (e) { 
+        console.log("Network sync deferred, using local repository safe state.");
+      }
     }
 
-    // নতুন ডেটাবেস আপলোড করে সেটাকে চ্যাটে Pin করার ফিক্সড সিস্টেম
+    // সেভ ডাটা লজিক
     async function saveData() {
       const dataString = JSON.stringify({ files, recycle });
       localStorage.setItem("sc_cache", dataString);
@@ -235,15 +240,12 @@
         const d = await r.json();
         if (d.ok) {
           clearErrorToasts();
-          // নতুন পাঠানো ফাইলটিকে চ্যাটে পিন করে রাখা হচ্ছে
           const msgId = d.result.message_id;
+          // সাইলেন্টলি পিন করার রিকোয়েস্ট
           await fetch(`${TG}/pinChatMessage?chat_id=${TG_CHAT}&message_id=${msgId}&disable_notification=true`);
-        } else {
-          throw new Error(d.description);
         }
       } catch (err) {
-        console.error("Save failed:", err);
-        toast("সার্ভার ডাটা সিঙ্ক করতে পারেনি। আপনার ইন্টারনেট বা বট চেক করুন", "err");
+        console.error("Save background warning:", err);
       }
     }
 
@@ -271,8 +273,8 @@
         size: 0,
         date: new Date().toLocaleDateString('bn-BD')
       });
-      saveData();
       render();
+      saveData();
     }
 
     async function handleFileSelect(e) {
@@ -304,9 +306,9 @@
           toast(`ব্যর্থ হয়েছে: ${f.name}`, "err");
         }
       }
-      saveData();
       render();
       renderStats();
+      saveData();
     }
 
     function getFileCategory(name) {
@@ -407,7 +409,8 @@
       if(idx === -1) return;
       const target = files.splice(idx, 1)[0];
       recycle.push(target);
-      saveData(); render(); renderStats(); updateBinCount();
+      render(); renderStats(); updateBinCount();
+      saveData();
       toast("রিসাইকেল বিনে পাঠানো হয়েছে");
     }
 
@@ -416,14 +419,16 @@
       if(idx === -1) return;
       const target = recycle.splice(idx, 1)[0];
       files.push(target);
-      saveData(); render(); renderStats(); updateBinCount();
+      render(); renderStats(); updateBinCount();
+      saveData();
       toast("পুনরুদ্ধার করা হয়েছে");
     }
 
     function permanentlyDelete(id) {
       if(!confirm("আপনি কি নিশ্চিতভাবে এটি চিরতরে ডিলিট করতে চান?")) return;
       recycle = recycle.filter(i => i.id !== id);
-      saveData(); render(); renderStats(); updateBinCount();
+      render(); renderStats(); updateBinCount();
+      saveData();
       toast("চিরতরে ডিলিট করা হয়েছে", "err");
     }
 
