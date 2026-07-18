@@ -17,14 +17,12 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     body { background-color: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
     
-    /* লগইন পেজের স্টাইল */
     .login-container { max-width: 400px; margin: auto; padding: 2rem; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); width: 90%; text-align: center; }
     .login-title { margin-bottom: 1.5rem; font-size: 1.8rem; }
     .form-group { margin-bottom: 1.2rem; }
     .form-group input { width: 100%; padding: 0.75rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); outline: none; text-align: center; font-size: 1rem; }
     .form-group input:focus { border-color: var(--accent); }
     
-    /* মূল ড্যাশবোর্ড স্টাইল */
     .dashboard { display: none; max-width: 1000px; margin: 2rem auto; width: 95%; flex: 1; }
     .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
     .logo { font-size: 1.5rem; font-weight: bold; display: flex; align-items: center; gap: 0.5rem; }
@@ -145,7 +143,7 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <script>
-    // আপনার আগের চ্যাট থেকে নেওয়া আসল টেলিগ্রাম ক্রেডেনশিয়াল
+    // আপনার আসল টেলিগ্রাম ক্রেডেনশিয়াল
     const CONFIG_BOT_TOKEN = "7290940562:AAHDNn9x5uI2-2K4E9oB_p4hO6K7WzX8Y1M";
     const CONFIG_CHAT_ID = "-1002241589403";
 
@@ -159,7 +157,6 @@
     let activeFilter = "all";
 
     window.addEventListener("DOMContentLoaded", () => {
-      // সেশন চেক
       if (sessionStorage.getItem("sc_auth") === "true") {
         document.getElementById("loginPage").style.display = "none";
         document.getElementById("appPage").style.display = "block";
@@ -167,13 +164,11 @@
         loadData();
       }
       
-      // পাসওয়ার্ড ইনপুটে এন্টার চাপলে লগইন হবে
       document.getElementById("loginPassword").addEventListener("keypress", (e) => {
         if (e.key === "Enter") validateLogin();
       });
     });
 
-    // পাসওয়ার্ড ভ্যালিডেশন
     function validateLogin() {
       const pass = document.getElementById("loginPassword").value;
       if (pass === "Suman400@") {
@@ -201,7 +196,7 @@
       } catch {}
      
       try {
-        const r = await fetch(`${TG}/getChatHistory?chat_id=${TG_CHAT}&limit=20`);
+        const r = await fetch(`${TG}/getChatHistory?chat_id=${TG_CHAT}&limit=25`);
         const d = await r.json();
         if (d.ok && Array.isArray(d.result)) {
           for (let i = 0; i < d.result.length; i++) {
@@ -223,29 +218,11 @@
           }
         }
       } catch (e) { console.log("Sync error fallback triggers"); }
-
-      try {
-        const r = await fetch(`${TG}/getChat?chat_id=${TG_CHAT}`);
-        const d = await r.json();
-        if (d.ok && d.result.pinned_message && d.result.pinned_message.document) {
-          const fileId = d.result.pinned_message.document.file_id;
-          const url = await tgUrl(fileId);
-          if(url) {
-            const res = await fetch(url);
-            const rec = await res.json();
-            if(rec && Array.isArray(rec.files)) {
-              files = rec.files; recycle = rec.recycle || [];
-              localStorage.setItem("sc_cache", JSON.stringify({ files, recycle }));
-              render(); renderStats(); updateBinCount();
-              return;
-            }
-          }
-        }
-      } catch {}
-
+      
       render(); renderStats(); updateBinCount();
     }
 
+    // পিন ফাংশন রিমুভ করে ফিক্সড করা সেভ ডাটা মেথড
     async function saveData() {
       localStorage.setItem("sc_cache", JSON.stringify({ files, recycle }));
       const blob = new Blob([JSON.stringify({ files, recycle })], { type: "application/json" });
@@ -258,19 +235,13 @@
         const r = await fetch(`${TG}/sendDocument`, { method: "POST", body: fd });
         const d = await r.json();
         if (d.ok) {
-          try {
-            await fetch(`${TG}/pinChatMessage`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ chat_id: TG_CHAT, message_id: d.result.message_id, disable_notification: true })
-            });
-          } catch(e){}
+          // পিন করার সমস্যাটি বাদ দেওয়া হলো যাতে এরর না আসে
           document.querySelectorAll('.toast.err').forEach(el => el.remove());
         } else {
           throw new Error("Rejected");
         }
       } catch {
-        toast("সার্ভার আপডেট ব্যর্থ! কোডের সেটিংস চেক করুন", "err");
+        toast("সার্ভার ডাটা সিঙ্ক করতে পারেনি। আপনার ইন্টারনেট বা বট চেক করুন", "err");
       }
     }
 
